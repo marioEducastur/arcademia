@@ -24,10 +24,18 @@ vigente, las decisiones aún no convertidas en reglas y los pendientes.
 - **Frontera acordada**: los **juegos** (Guardianes, Grimorio, Órbita Gauss)
   se mudan; los **laboratorios didácticos** anclados a apartados se quedan
   en `mat1`.
-- Sin repositorio Git, sin remoto y sin publicación: todo es local y
-  cualquier paso de publicación exige autorización expresa.
-- El código de origen de los tres juegos está commiteado en `mat1`
-  (`plantilla/shell.html`), de modo que la mudanza no puede perder nada.
+- **Publicado el 6 de agosto de 2026** por orden expresa del profesor:
+  repositorio <https://github.com/marioEducastur/arcademia> (rama `main`)
+  y GitHub Pages en <https://marioeducastur.github.io/arcademia/>, con
+  `.nojekyll` desde el primer commit (lección de mat1). Portada y los
+  cuatro juegos verificados con 200 en producción.
+- Respaldo en Drive (misma orden): `Mate/Arcademia/` en Mi unidad, con
+  instantáneas fechadas que nunca se sobrescriben: `01_salon/` (web
+  completa) y `99_respaldo/` (AGENTS, CONTEXTO_IA y ajustes locales),
+  todas las copias verificadas byte a byte con `cmp`.
+- El código de origen de los tres juegos migrados está commiteado en
+  `mat1` (`plantilla/shell.html`), de modo que la mudanza no puede perder
+  nada.
 
 ## Juegos y su origen en mat1
 
@@ -98,6 +106,25 @@ Enlaces «Aprende esto en…» hacia los apuntes:
    Arcademia, `mat1` no se toca.**
 
 ## Registro breve
+
+- **2026-08-06 00:43 CEST (publicación):** por orden expresa del profesor
+  («haz push/commit… y la estructura en Drive»): repositorio
+  `marioEducastur/arcademia` creado (público), **commit inicial
+  `0025db4`** (9 archivos: portada, 4 juegos, AGENTS, CONTEXTO,
+  `.gitignore` con `.claude/` y `.DS_Store`, y `.nojekyll`), push a
+  `origin/main` y **GitHub Pages activado** (main, raíz):
+  `pages-build-deployment` en verde y las cinco páginas con 200 en
+  producción; la portada verificada en el navegador con el neón rotando
+  y los cuatro «Jugar» funcionando bajo `/arcademia/`. La identidad de
+  Git se configuró local al repo (copiada de mat1: no había global).
+  **Drive**: creada `Mate/Arcademia/` con `01_salon/2026-08-06_0043/`
+  (web completa) y `99_respaldo/2026-08-06_0043/` (AGENTS, CONTEXTO_IA
+  y `settings.local.json`), copias en pasos simples y las ocho
+  verificadas byte a byte con `cmp`. Antes de esta orden quedaba
+  pendiente la revisión visual del profesor: la publicación la da por
+  buena de facto; cualquier retoque posterior seguirá el ciclo normal
+  (cambio → verificación → commit y push autorizados). Este registro
+  entra en un segundo commit inmediato para que el repo quede al día.
 
 - **2026-08-06 (La Torre de los Enteros, 1.º ESO):** primer juego de ESO,
   **aportado por el profesor** como archivo ya hecho (prototipo V3, no
