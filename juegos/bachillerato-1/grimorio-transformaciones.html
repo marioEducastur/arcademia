@@ -1,0 +1,1962 @@
+<!doctype html>
+<html lang="es-ES">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#163b72">
+  <title>El Grimorio de las Transformaciones · Arcademia</title>
+  <!--
+    Juego: El Grimorio de las Transformaciones
+    Curso: 1.º de Bachillerato · Tema: Ecuaciones (unidad 2, Álgebra)
+    Apuntes: https://marioeducastur.github.io/mat1/
+    Origen: migrado desde mat1/plantilla/shell.html (componente «grimorio»)
+  -->
+
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.29.7/babel.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --texto: #172033;
+      --texto-suave: #526077;
+      --fondo: #f2f5fa;
+      --superficie: #ffffff;
+      --borde: #d8e1ee;
+      --acento: #1d4ed8;
+      --acento-oscuro: #163b72;
+      --verde: #047857;
+      --rojo: #b4233a;
+      --rojo-suave: #fff1f3;
+      --violeta: #6d28d9;
+      --violeta-suave: #f5f0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--fondo);
+    }
+
+    body {
+      min-width: 0;
+      margin: 0;
+      color: var(--texto);
+      background: var(--fondo);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+        Arial, sans-serif;
+      font-size: 1.035rem;
+      line-height: 1.7;
+    }
+
+    :focus-visible {
+      outline: 0.2rem solid var(--violeta);
+      outline-offset: 0.16rem;
+      box-shadow: 0 0 0 0.12rem #ffffff;
+    }
+
+    /* Cabecera y pie propios de Arcademia */
+
+    .cabecera-arcademia {
+      color: #fde68a;
+      background: #0e1330;
+      box-shadow: 0 5px 18px rgb(11 16 38 / 0.3);
+    }
+
+    .cabecera-interior,
+    .contenido-juego,
+    .pie-juego {
+      width: min(100%, 60rem);
+      margin: 0 auto;
+      padding: 0.65rem clamp(1rem, 3vw, 2rem);
+    }
+
+    .cabecera-interior {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .cabecera-arcademia a {
+      color: #fde68a;
+      font-weight: 750;
+      text-decoration: none;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .cabecera-arcademia a:hover,
+    .cabecera-arcademia a:focus-visible {
+      text-decoration: underline;
+    }
+
+    .cabecera-curso {
+      color: #c7d2fe;
+      font-size: 0.9rem;
+    }
+
+    .contenido-juego {
+      padding-top: 1.4rem;
+      padding-bottom: 1.4rem;
+    }
+
+    .aviso-carga {
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--borde);
+      border-radius: 0.85rem;
+      background: var(--superficie);
+      color: var(--texto-suave);
+    }
+
+    .juego-listo .aviso-carga {
+      display: none;
+    }
+
+    .pie-juego {
+      padding-bottom: 2rem;
+      color: var(--texto-suave);
+      font-size: 0.94rem;
+    }
+
+    .pie-juego a {
+      color: var(--acento);
+    }
+
+    /* Base compartida heredada de mat1 */
+
+    button {
+      min-height: 2.75rem;
+      padding: 0.55rem 0.9rem;
+      color: #ffffff;
+      background: var(--acento);
+      border: 0;
+      border-radius: 0.62rem;
+      box-shadow: 0 5px 12px rgb(29 78 216 / 0.16);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      transition:
+        transform 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease;
+    }
+
+    button:hover,
+    button:focus-visible {
+      background: var(--acento-oscuro);
+      box-shadow: 0 7px 15px rgb(22 59 114 / 0.2);
+      transform: translateY(-1px);
+    }
+
+    .componente-interactivo {
+      padding: 1.1rem 1.2rem 1.25rem;
+      border: 1px solid #d9cff8;
+      border-left: 0.34rem solid var(--violeta);
+      border-radius: 0.85rem;
+      background: var(--violeta-suave);
+      box-shadow: 0 12px 26px rgb(109 40 217 / 0.08);
+    }
+
+    .titulo-interactivo {
+      margin: 0 0 0.45rem;
+      color: var(--acento-oscuro);
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .instruccion-interactivo {
+      margin: 0 0 1rem;
+      color: var(--texto-suave);
+    }
+
+    .nota-escala {
+      margin: 0.8rem 0;
+      color: var(--texto-suave);
+      font-size: 0.94rem;
+    }
+
+    .kicker-conjunto {
+      color: var(--color-conjunto, #255792);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .opciones-interactivo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .opciones-interactivo button {
+      min-height: 2.9rem;
+      padding: 0.42rem 0.8rem;
+      color: var(--acento-oscuro);
+      border: 1px solid #cbd8e8;
+      background: #ffffff;
+      box-shadow: 0 3px 9px rgb(37 87 146 / 0.08);
+      font-size: 1.02rem;
+    }
+
+    .opciones-interactivo button:hover,
+    .opciones-interactivo button:focus-visible {
+      color: #ffffff;
+      border-color: var(--acento);
+      background: var(--acento);
+    }
+
+    .paso-interactivo {
+      margin: 0.9rem 0 0;
+      padding: 0.9rem 1rem;
+      border: 1px solid #d6dfec;
+      border-radius: 0.85rem;
+      background: rgb(255 255 255 / 0.9);
+      box-shadow: 0 8px 18px rgb(37 87 146 / 0.07);
+      animation: entrar-detalle 260ms ease-out;
+    }
+
+    .paso-interactivo .kicker-conjunto {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .veredicto-interactivo {
+      --color-veredicto: var(--verde);
+      margin: 0.9rem 0 0;
+      padding: 0.95rem 1.05rem;
+      border: 1px solid #d6dfec;
+      border-left: 0.32rem solid var(--color-veredicto);
+      border-radius: 0.85rem;
+      background: #ffffff;
+      box-shadow: 0 8px 18px rgb(37 87 146 / 0.07);
+      animation: entrar-detalle 260ms ease-out;
+    }
+
+    .veredicto-interactivo.es-fallo {
+      --color-veredicto: var(--rojo);
+    }
+
+    .veredicto-interactivo strong {
+      color: var(--color-veredicto);
+    }
+
+    .veredicto-interactivo p {
+      margin: 0.4rem 0 0;
+    }
+
+    .formula-viva {
+      margin: 0.9rem 0 0;
+      padding: 0.7rem 1rem;
+      overflow-x: auto;
+      text-align: center;
+      border: 1px solid #d6dfec;
+      border-radius: 0.75rem;
+      background: #ffffff;
+      box-shadow: 0 3px 8px rgb(23 32 51 / 0.05);
+    }
+
+    .formula-viva .katex-display {
+      margin: 0;
+    }
+
+    .chip-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.32rem;
+      margin: 0.18rem 0.3rem 0.18rem 0;
+      padding: 0.24rem 0.55rem;
+      color: var(--texto);
+      border: 1px solid var(--borde);
+      border-radius: 1rem;
+      font-size: 0.86rem;
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    .chip-control.pasa {
+      border-color: #16a34a;
+      color: #166534;
+    }
+
+    .chip-control.no-pasa {
+      border-color: #dc2626;
+      color: #b91c1c;
+    }
+
+    .gm-camaras {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 0.4rem 0 0.6rem;
+    }
+
+    @keyframes entrar-detalle {
+      from {
+        opacity: 0;
+        transform: translateY(0.4rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 26rem) {
+      .componente-interactivo {
+        padding: 0.9rem;
+        border-radius: 0.65rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    /* El Grimorio de las Transformaciones (CSS .gm- migrado de mat1) */
+
+    .gm-contrato {
+      margin: 0.4rem 0 0;
+      font-size: 0.88rem;
+      color: var(--texto-suave);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .gm-mano {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.6rem 0;
+    }
+
+    .gm-carta {
+      min-width: 8.5rem;
+      max-width: 12rem;
+      min-height: 4.6rem;
+      padding: 0.5rem 0.6rem;
+      color: var(--texto);
+      border: 1.5px solid #cbd8e8;
+      border-radius: 0.7rem;
+      background: #ffffff;
+      box-shadow: 0 4px 10px rgb(37 87 146 / 0.1);
+      font: inherit;
+      font-size: 0.92rem;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .gm-carta[aria-pressed="true"] {
+      border-color: #7c3aed;
+      box-shadow: 0 4px 12px rgb(124 58 237 / 0.25);
+    }
+
+    .gm-carta.gm-peligrosa {
+      border-style: dashed;
+      border-color: #b91c1c;
+    }
+
+    .gm-frasco {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0.45rem 0;
+    }
+
+    .gm-espectro {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.22rem 0.6rem;
+      color: #5b21b6;
+      border: 1px solid #a78bfa;
+      border-radius: 1rem;
+      background: rgba(167, 139, 250, 0.12);
+      font-size: 0.85rem;
+    }
+
+    @keyframes gm-tembleque {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+      25% {
+        transform: translateX(-5px);
+      }
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    .gm-tiembla {
+      animation: gm-tembleque 0.4s ease-in-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gm-tiembla {
+        animation: none;
+      }
+    }
+
+    /* ---- Tema retro del salón: cromo de la página ---- */
+
+    html {
+      background: #0e1330;
+    }
+
+    body {
+      color: #e2e8f0;
+      background:
+        radial-gradient(
+          70rem 30rem at 50% -6rem,
+          rgb(167 139 250 / 0.14),
+          transparent 60%
+        ),
+        linear-gradient(180deg, #0a0e24 0%, #0e1330 30%, #0c1029 100%);
+    }
+
+    /* Cielo estrellado de píxeles, como en la portada. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        radial-gradient(rgb(199 210 254 / 0.4) 1px, transparent 1.5px),
+        radial-gradient(rgb(251 191 36 / 0.3) 1px, transparent 1.5px),
+        radial-gradient(rgb(56 224 240 / 0.28) 1px, transparent 1.5px);
+      background-size:
+        190px 170px,
+        230px 210px,
+        310px 260px;
+      background-position:
+        12px 24px,
+        84px 118px,
+        150px 60px;
+      pointer-events: none;
+    }
+
+    :focus-visible {
+      outline: 0.2rem solid #fbbf24;
+      outline-offset: 0.16rem;
+      box-shadow: 0 0 0 0.12rem #0e1330;
+    }
+
+    /* La cabecera se remata con su orla de bombillas de marquesina. */
+    .cabecera-arcademia {
+      position: relative;
+      border-bottom: 3px solid #2c3467;
+    }
+
+    .cabecera-arcademia::after {
+      content: "";
+      position: absolute;
+      left: 0.9rem;
+      right: 0.9rem;
+      bottom: 0.18rem;
+      height: 0.5rem;
+      background-image:
+        radial-gradient(
+          circle at 0.25rem 50%,
+          #fde68a 0 0.14rem,
+          rgb(251 191 36 / 0.28) 0.21rem,
+          transparent 0.27rem
+        );
+      background-size: 1.3rem 100%;
+      background-repeat: repeat-x;
+      animation: bombillas-juego 1.6s steps(2, jump-none) infinite;
+      pointer-events: none;
+    }
+
+    @keyframes bombillas-juego {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.35;
+      }
+    }
+
+    .cabecera-interior {
+      padding-bottom: 1rem;
+    }
+
+    .aviso-carga {
+      color: #c7d2fe;
+      border: 2px dashed #333b6e;
+      background: rgb(10 14 36 / 0.5);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+    }
+
+    .pie-juego {
+      color: #8b95c9;
+    }
+
+    .pie-juego a {
+      color: #7dd3fc;
+    }
+
+    .pie-juego a:hover,
+    .pie-juego a:focus-visible {
+      color: #fde68a;
+    }
+
+    /* ---- Tema retro del salón: el mueble del juego ---- */
+
+    .componente-interactivo {
+      border: 1px solid #0b1026;
+      border-left: 0.34rem solid #fbbf24;
+      background: #0e1330;
+      box-shadow: 0 16px 34px rgb(11 16 38 / 0.35);
+    }
+
+    .titulo-interactivo {
+      color: #fde68a;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .instruccion-interactivo {
+      color: #c7d2fe;
+    }
+
+    .nota-escala {
+      color: #8b95c9;
+    }
+
+    .kicker-conjunto {
+      color: #fbbf24;
+    }
+
+    /* Botones estilo recreativa: plástico oscuro con rótulo ámbar; al
+       pulsarlos o recibir foco se encienden como el botón «Jugar». */
+    button,
+    .opciones-interactivo button {
+      color: #fde68a;
+      border: 2px solid #3a4487;
+      background: linear-gradient(180deg, #232a5c 0%, #1b2148 100%);
+      box-shadow: 0 4px 0 #090c1e;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    button:hover,
+    button:focus-visible,
+    .opciones-interactivo button:hover,
+    .opciones-interactivo button:focus-visible {
+      color: #241a05;
+      border-color: #92710d;
+      background: linear-gradient(180deg, #fde68a, #fbbf24);
+      box-shadow:
+        0 4px 0 #090c1e,
+        0 0 18px rgb(251 191 36 / 0.45);
+    }
+
+    select,
+    input[type="text"] {
+      padding: 0.2rem 0.4rem;
+      color: #e2e8f0;
+      border: 1px solid #3a4487;
+      border-radius: 0.4rem;
+      background: #0a0e24;
+      font: inherit;
+    }
+
+    .paso-interactivo {
+      color: #e2e8f0;
+      border: 1px solid #2c3467;
+      background: #171d42;
+      box-shadow: 0 8px 18px rgb(0 0 0 / 0.35);
+    }
+
+    .veredicto-interactivo {
+      --color-veredicto: #4ade80;
+      color: #e2e8f0;
+      border: 1px solid #2c3467;
+      border-left: 0.32rem solid var(--color-veredicto);
+      background: #171d42;
+      box-shadow: 0 8px 18px rgb(0 0 0 / 0.35);
+    }
+
+    .veredicto-interactivo.es-fallo {
+      --color-veredicto: #f87171;
+    }
+
+    /* Las fórmulas se muestran como pantallas encendidas del mueble. */
+    .formula-viva {
+      color: #f8fafc;
+      border: 1px solid #2c3467;
+      background: #0a0e24;
+      box-shadow:
+        inset 0 0 22px rgb(56 224 240 / 0.07),
+        0 3px 8px rgb(0 0 0 / 0.3);
+    }
+
+    .chip-control {
+      color: #e2e8f0;
+      border: 1px solid #2c3467;
+      background: #131843;
+    }
+
+    .chip-control.pasa {
+      color: #4ade80;
+      border-color: #4ade80;
+    }
+
+    .chip-control.no-pasa {
+      color: #f87171;
+      border-color: #f87171;
+    }
+
+    /* Los chips activos traen su color en estilo en línea (herencia de
+       mat1, pensada para fondo claro): aquí se reencienden en neón. */
+    .gm-camaras .chip-control[style] {
+      color: #fde68a !important;
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 12px rgb(251 191 36 / 0.35);
+    }
+
+    [aria-label="Misiones"] .chip-control[style] {
+      color: #7dd3fc !important;
+      border-color: #7dd3fc !important;
+      box-shadow: 0 0 12px rgb(125 211 252 / 0.35);
+    }
+
+    /* Piezas propias del Grimorio sobre el mueble oscuro. */
+    .gm-contrato {
+      color: #c7d2fe;
+    }
+
+    .gm-carta {
+      color: #e2e8f0;
+      border: 1.5px solid #3a4487;
+      background: linear-gradient(180deg, #232a5c 0%, #1b2148 100%);
+      box-shadow: 0 4px 10px rgb(0 0 0 / 0.35);
+    }
+
+    .gm-carta[aria-pressed="true"] {
+      border-color: #a78bfa;
+      box-shadow: 0 0 14px rgb(167 139 250 / 0.45);
+    }
+
+    .gm-carta.gm-peligrosa {
+      border-color: #f87171;
+    }
+
+    .gm-espectro {
+      color: #c4b5fd;
+      border: 1px solid #8b5cf6;
+      background: rgb(139 92 246 / 0.16);
+    }
+  </style>
+</head>
+<body>
+  <header class="cabecera-arcademia">
+    <div class="cabecera-interior">
+      <a href="../../index.html">← Arcademia</a>
+      <span class="cabecera-curso">
+        1.º de Bachillerato · Ecuaciones (Álgebra)
+      </span>
+    </div>
+  </header>
+
+  <main class="contenido-juego">
+    <p class="aviso-carga" id="grimorio-respaldo">
+      El juego necesita JavaScript y, la primera vez, conexión para cargar
+      React y KaTeX. Si este mensaje no desaparece, recarga la página con
+      conexión.
+    </p>
+    <div id="grimorio-montaje"></div>
+  </main>
+
+  <footer class="pie-juego">
+    <p>
+      Aprende esto en la
+      <a href="https://marioeducastur.github.io/mat1/">unidad 2 (Álgebra)
+      de Matemáticas I</a>.
+    </p>
+  </footer>
+
+  <script type="text/babel" data-presets="env,react">
+    (() => {
+      if (!window.React || !window.ReactDOM) {
+        return;
+      }
+
+      class LimiteDeError extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { haFallado: false };
+        }
+
+        static getDerivedStateFromError() {
+          return { haFallado: true };
+        }
+
+        componentDidCatch(error) {
+          console.error("Fallo en un bloque interactivo:", error);
+          this.props.alFallar();
+        }
+
+        render() {
+          return this.state.haFallado ? null : this.props.children;
+        }
+      }
+      function MatematicaEnLinea({ tex }) {
+        if (!window.katex) {
+          return <span>{tex}</span>;
+        }
+
+        return (
+          <span
+            dangerouslySetInnerHTML={{
+              __html: window.katex.renderToString(tex, {
+                displayMode: false,
+                output: "htmlAndMathml",
+                strict: "ignore",
+                throwOnError: false
+              })
+            }}
+          />
+        );
+      }
+
+      function FormulaViva({ tex }) {
+        if (!window.katex) {
+          return <p className="formula-viva">{tex}</p>;
+        }
+
+        return (
+          <p
+            className="formula-viva"
+            dangerouslySetInnerHTML={{
+              __html: window.katex.renderToString(tex, {
+                displayMode: true,
+                output: "htmlAndMathml",
+                strict: "ignore",
+                throwOnError: false
+              })
+            }}
+          />
+        );
+      }
+      const GM_PARAMETROS = {
+        1: [
+          [2, -3],
+          [3, -4],
+          [1, -5],
+          [4, -2]
+        ],
+        2: [2, 3, 4],
+        3: [
+          [2, -3],
+          [3, -4],
+          [1, -2],
+          [4, -5]
+        ],
+        4: [
+          [2, -5],
+          [5, -2],
+          [10, -1],
+          [1, -10]
+        ],
+        5: [
+          [3, 2],
+          [3, 5],
+          [2, 2],
+          [2, 3]
+        ]
+      };
+
+      function gmMas(numero) {
+        return numero >= 0 ? "+" + numero : String(numero);
+      }
+
+      function gmTerminoX(coeficiente) {
+        if (coeficiente === 0) {
+          return "";
+        }
+        if (coeficiente === 1) {
+          return "+x";
+        }
+        if (coeficiente === -1) {
+          return "-x";
+        }
+        return gmMas(coeficiente) + "x";
+      }
+
+      function gmConstruirSala(numero, eleccion) {
+        const parametros = GM_PARAMETROS[numero][eleccion];
+        if (numero === 1) {
+          const r1 = parametros[0];
+          const r2 = parametros[1];
+          const b = -(r1 + r2);
+          const c = -(r1 * r2);
+          const original = "x\\,(x" + gmMas(b) + ")=" + c;
+          const trampaNulo = {
+            nombre: "Producto nulo",
+            tipo: "trampa",
+            leccion:
+              "El producto nulo solo funciona con un 0 a la derecha: " +
+              "aquí el producto vale " + c + ", no 0."
+          };
+          return {
+            numero,
+            nombre: "La cámara del producto",
+            original,
+            parJugadas: 3,
+            pasos: [
+              {
+                tex: original,
+                cartas: [
+                  trampaNulo,
+                  {
+                    nombre: "Desarrollar el producto",
+                    tipo: "avanza",
+                    previewTex: "x^2" + gmTerminoX(b) + "=" + c,
+                    salto: 1
+                  },
+                  {
+                    nombre: "Fórmula cuadrática",
+                    tipo: "trampa",
+                    leccion:
+                      "La fórmula pide la forma ax²+bx+c=0: primero " +
+                      "desarrolla y reúne todo a la izquierda."
+                  }
+                ]
+              },
+              {
+                tex: "x^2" + gmTerminoX(b) + "=" + c,
+                cartas: [
+                  {
+                    nombre: "Reunir a la izquierda",
+                    tipo: "avanza",
+                    previewTex:
+                      "x^2" + gmTerminoX(b) + gmMas(-c) + "=0",
+                    salto: 2
+                  },
+                  trampaNulo
+                ]
+              },
+              {
+                tex: "x^2" + gmTerminoX(b) + gmMas(-c) + "=0",
+                cartas: [
+                  {
+                    nombre: "Fórmula cuadrática",
+                    tipo: "avanza",
+                    previewTex:
+                      "x=" + r1 + "\\quad\\text{o}\\quad x=" + r2,
+                    salto: "juicio"
+                  },
+                  {
+                    nombre: "Elevar al cuadrado",
+                    tipo: "trampa",
+                    leccion:
+                      "No hay radicales: elevar al cuadrado solo " +
+                      "fabricaría espectros gratis."
+                  }
+                ]
+              }
+            ],
+            juicio: [r1, r2].map((raiz) => ({
+              etiquetaTex: "x=" + raiz,
+              esSolucion: true,
+              controles: [
+                {
+                  titulo: "¿Cumple la original?",
+                  pasa: true,
+                  detalleTex:
+                    raiz + "\\,(" + (raiz + b) + ")=" + c
+                }
+              ]
+            }))
+          };
+        }
+        if (numero === 2) {
+          const m = parametros;
+          const r = -1 - m;
+          const c = m * m;
+          const original =
+            "\\frac{x}{x-" + m + "}+\\frac{1}{x}=\\frac{" +
+            c + "}{x^2-" + m + "x}";
+          return {
+            numero,
+            nombre: "La cámara de los denominadores",
+            original,
+            parJugadas: 3,
+            pasos: [
+              {
+                tex: original,
+                cartas: [
+                  {
+                    nombre: "Igualar numeradores",
+                    tipo: "trampa",
+                    leccion:
+                      "Solo puedes igualar numeradores cuando todos " +
+                      "los denominadores coinciden, y aquí hay tres " +
+                      "distintos."
+                  },
+                  {
+                    nombre: "Multiplicar por el m.c.m.",
+                    tipo: "peligrosa",
+                    espectros: [
+                      {
+                        etiquetaTex: "x\\,(x-" + m + ")",
+                        motivo:
+                          "pudo colar x=0 o x=" + m +
+                          ": los ceros del m.c.m."
+                      }
+                    ],
+                    previewTex: "x^2+x-" + m + "=" + c,
+                    salto: 1
+                  },
+                  {
+                    nombre: "Elevar al cuadrado",
+                    tipo: "trampa",
+                    leccion:
+                      "No hay radicales que liberar: el cuadrado " +
+                      "solo metería espectros."
+                  }
+                ]
+              },
+              {
+                tex: "x^2+x-" + m + "=" + c,
+                cartas: [
+                  {
+                    nombre: "Reunir a la izquierda",
+                    tipo: "avanza",
+                    previewTex: "x^2+x-" + (m + c) + "=0",
+                    salto: 2
+                  },
+                  {
+                    nombre: "Producto nulo",
+                    tipo: "trampa",
+                    leccion:
+                      "A la izquierda no hay ningún producto de " +
+                      "factores: reúne y usa la fórmula."
+                  }
+                ]
+              },
+              {
+                tex: "x^2+x-" + (m + c) + "=0",
+                cartas: [
+                  {
+                    nombre: "Fórmula cuadrática",
+                    tipo: "avanza",
+                    previewTex:
+                      "x=" + m + "\\quad\\text{o}\\quad x=" + r,
+                    salto: "juicio"
+                  }
+                ]
+              }
+            ],
+            juicio: [
+              {
+                etiquetaTex: "x=" + m,
+                esSolucion: false,
+                controles: [
+                  {
+                    titulo: "Denominadores",
+                    pasa: false,
+                    detalleTex: "x-" + m + "=0"
+                  }
+                ]
+              },
+              {
+                etiquetaTex: "x=" + r,
+                esSolucion: true,
+                controles: [
+                  {
+                    titulo: "Denominadores",
+                    pasa: true,
+                    detalleTex: "x\\neq 0,\\ x\\neq " + m
+                  },
+                  {
+                    titulo: "¿Cumple la original?",
+                    pasa: true,
+                    detalleTex:
+                      "\\text{ambos miembros valen }\\tfrac{" +
+                      c + "}{" + (r * r - m * r) + "}"
+                  }
+                ]
+              }
+            ]
+          };
+        }
+        if (numero === 3) {
+          const v = parametros[0];
+          const f = parametros[1];
+          const a = 1 - v * f;
+          const original = "\\sqrt{x+" + a + "}=x+1";
+          return {
+            numero,
+            nombre: "La cámara del radical",
+            original,
+            parJugadas: 3,
+            pasos: [
+              {
+                tex: original,
+                cartas: [
+                  {
+                    nombre: "Aislar el radical",
+                    tipo: "trampa",
+                    leccion:
+                      "El radical ya está solo en su miembro: esta " +
+                      "carta no cambia nada."
+                  },
+                  {
+                    nombre: "Elevar al cuadrado",
+                    tipo: "peligrosa",
+                    espectros: [
+                      {
+                        etiquetaTex: "(\\;)^2",
+                        motivo:
+                          "igualó los cuadrados: pudo colar una " +
+                          "candidata con el signo cambiado"
+                      }
+                    ],
+                    previewTex: "x+" + a + "=x^2+2x+1",
+                    salto: 1
+                  },
+                  {
+                    nombre: "Producto nulo",
+                    tipo: "trampa",
+                    leccion:
+                      "Sin factorización y sin cero a la derecha, " +
+                      "el producto nulo no tiene nada que hacer."
+                  }
+                ]
+              },
+              {
+                tex: "x+" + a + "=x^2+2x+1",
+                cartas: [
+                  {
+                    nombre: "Reunir a la izquierda",
+                    tipo: "avanza",
+                    previewTex: "x^2+x" + gmMas(1 - a) + "=0",
+                    salto: 2
+                  }
+                ]
+              },
+              {
+                tex: "x^2+x" + gmMas(1 - a) + "=0",
+                cartas: [
+                  {
+                    nombre: "Fórmula cuadrática",
+                    tipo: "avanza",
+                    previewTex:
+                      "x=" + v + "\\quad\\text{o}\\quad x=" + f,
+                    salto: "juicio"
+                  }
+                ]
+              }
+            ],
+            juicio: [
+              {
+                etiquetaTex: "x=" + v,
+                esSolucion: true,
+                controles: [
+                  {
+                    titulo: "Radicando",
+                    pasa: true,
+                    detalleTex: "x+" + a + "=" + (v + a) + "\\geq 0"
+                  },
+                  {
+                    titulo: "¿Cumple la original?",
+                    pasa: true,
+                    detalleTex:
+                      "\\sqrt{" + (v + a) + "}=" + (v + 1)
+                  }
+                ]
+              },
+              {
+                etiquetaTex: "x=" + f,
+                esSolucion: false,
+                controles: [
+                  {
+                    titulo: "Radicando",
+                    pasa: true,
+                    detalleTex: "x+" + a + "=" + (f + a) + "\\geq 0"
+                  },
+                  {
+                    titulo: "¿Cumple la original?",
+                    pasa: false,
+                    detalleTex:
+                      "\\sqrt{" + (f + a) + "}=" + -(f + 1) +
+                      "\\neq " + (f + 1)
+                  }
+                ]
+              }
+            ]
+          };
+        }
+        if (numero === 4) {
+          const p = parametros[0];
+          const q = parametros[1];
+          const d = -(p + q);
+          const argumento = "x" + gmMas(d);
+          const original =
+            "\\log x+\\log(" + argumento + ")=1";
+          const trampaIgualar = {
+            nombre: "Igualar argumentos",
+            tipo: "trampa",
+            leccion:
+              "A la derecha hay un 1, no un logaritmo: no hay " +
+              "argumentos que igualar."
+          };
+          return {
+            numero,
+            nombre: "La cámara del logaritmo",
+            original,
+            parJugadas: 4,
+            pasos: [
+              {
+                tex: original,
+                cartas: [
+                  trampaIgualar,
+                  {
+                    nombre: "Reunir: log del producto",
+                    tipo: "avanza",
+                    previewTex:
+                      "\\log\\bigl[x\\,(" + argumento +
+                      ")\\bigr]=1",
+                    salto: 1
+                  },
+                  {
+                    nombre: "Cambio z = 3^x",
+                    tipo: "trampa",
+                    leccion:
+                      "Aquí no hay exponenciales: esa carta " +
+                      "pertenece a otra cámara."
+                  }
+                ]
+              },
+              {
+                tex:
+                  "\\log\\bigl[x\\,(" + argumento + ")\\bigr]=1",
+                cartas: [
+                  {
+                    nombre: "Aplicar la definición",
+                    tipo: "peligrosa",
+                    espectros: [
+                      {
+                        etiquetaTex: "x>0",
+                        motivo:
+                          "la definición exige el argumento " +
+                          "positivo"
+                      },
+                      {
+                        etiquetaTex: argumento + ">0",
+                        motivo:
+                          "el otro argumento también debe ser " +
+                          "positivo"
+                      }
+                    ],
+                    previewTex: "x\\,(" + argumento + ")=10",
+                    salto: 2
+                  },
+                  trampaIgualar
+                ]
+              },
+              {
+                tex: "x\\,(" + argumento + ")=10",
+                cartas: [
+                  {
+                    nombre: "Desarrollar y reunir",
+                    tipo: "avanza",
+                    previewTex:
+                      "x^2" + gmTerminoX(d) + "-10=0",
+                    salto: 3
+                  },
+                  {
+                    nombre: "Producto nulo",
+                    tipo: "trampa",
+                    leccion:
+                      "El producto vale 10, no 0: el producto nulo " +
+                      "sigue sin poder ayudarte."
+                  }
+                ]
+              },
+              {
+                tex: "x^2" + gmTerminoX(d) + "-10=0",
+                cartas: [
+                  {
+                    nombre: "Fórmula cuadrática",
+                    tipo: "avanza",
+                    previewTex:
+                      "x=" + p + "\\quad\\text{o}\\quad x=" + q,
+                    salto: "juicio"
+                  }
+                ]
+              }
+            ],
+            juicio: [
+              {
+                etiquetaTex: "x=" + p,
+                esSolucion: true,
+                controles: [
+                  {
+                    titulo: "Argumentos",
+                    pasa: true,
+                    detalleTex:
+                      p + ">0,\\ " + (p + d) + ">0"
+                  },
+                  {
+                    titulo: "¿Cumple la original?",
+                    pasa: true,
+                    detalleTex:
+                      "\\log " + p + "+\\log " + (p + d) +
+                      "=\\log 10=1"
+                  }
+                ]
+              },
+              {
+                etiquetaTex: "x=" + q,
+                esSolucion: false,
+                controles: [
+                  {
+                    titulo: "Argumentos",
+                    pasa: false,
+                    detalleTex:
+                      "\\log(" + q + ")\\ \\text{no existe}"
+                  }
+                ]
+              }
+            ]
+          };
+        }
+        const base = parametros[0];
+        const bNeg = parametros[1];
+        const aPos = base * base;
+        const medio = aPos - bNeg;
+        const indep = aPos * bNeg;
+        const baseTex = String(base);
+        const medioTex =
+          medio === 1
+            ? "-"
+            : "-" + medio + "\\cdot ";
+        const original =
+          baseTex + "^{2x}" + medioTex + baseTex + "^x-" +
+          indep + "=0";
+        const cuadraticaZ =
+          "z^2" + (medio === 1 ? "-z" : "-" + medio + "z") + "-" +
+          indep + "=0";
+        return {
+          numero,
+          nombre: "La cámara exponencial",
+          original,
+          parJugadas: 3,
+          pasos: [
+            {
+              tex: original,
+              cartas: [
+                {
+                  nombre: "Igualar bases",
+                  tipo: "trampa",
+                  leccion:
+                    "Con tres sumandos no hay dos potencias que " +
+                    "igualar: primero domestica la ecuación."
+                },
+                {
+                  nombre: "Cambio z = " + baseTex + "^x",
+                  tipo: "avanza",
+                  previewTex: cuadraticaZ,
+                  salto: 1
+                },
+                {
+                  nombre: "Tomar logaritmos",
+                  tipo: "trampa",
+                  leccion:
+                    "El logaritmo de una suma no se reparte: esa " +
+                    "carta aquí es humo."
+                }
+              ]
+            },
+            {
+              tex: cuadraticaZ,
+              cartas: [
+                {
+                  nombre: "Fórmula cuadrática",
+                  tipo: "avanza",
+                  previewTex:
+                    "z=" + aPos + "\\quad\\text{o}\\quad z=-" +
+                    bNeg,
+                  salto: 2
+                },
+                {
+                  nombre: "Deshacer el cambio",
+                  tipo: "trampa",
+                  leccion:
+                    "Todavía no conoces z: resuelve antes la " +
+                    "cuadrática."
+                }
+              ]
+            },
+            {
+              tex:
+                "z=" + aPos + "\\quad\\text{o}\\quad z=-" + bNeg,
+              cartas: [
+                {
+                  nombre: "Deshacer el cambio",
+                  tipo: "avanza",
+                  previewTex:
+                    baseTex + "^x=" + aPos +
+                    "\\quad\\text{o}\\quad " + baseTex +
+                    "^x=-" + bNeg,
+                  salto: "juicio"
+                },
+                {
+                  nombre: "Fórmula cuadrática",
+                  tipo: "trampa",
+                  leccion:
+                    "La cuadrática ya está resuelta en z: lo que " +
+                    "queda es volver a x."
+                }
+              ]
+            }
+          ],
+          juicio: [
+            {
+              etiquetaTex:
+                baseTex + "^x=" + aPos + "\\iff x=2",
+              esSolucion: true,
+              controles: [
+                {
+                  titulo: "Exponencial positiva",
+                  pasa: true,
+                  detalleTex: aPos + ">0"
+                },
+                {
+                  titulo: "¿Cumple la original?",
+                  pasa: true,
+                  detalleTex:
+                    aPos * aPos + "-" + medio * aPos + "-" +
+                    indep + "=0"
+                }
+              ]
+            },
+            {
+              etiquetaTex: baseTex + "^x=-" + bNeg,
+              esSolucion: false,
+              controles: [
+                {
+                  titulo: "Exponencial positiva",
+                  pasa: false,
+                  detalleTex:
+                    baseTex + "^x>0\\ \\text{siempre}"
+                }
+              ]
+            }
+          ]
+        };
+      }
+
+      const GM_NOMBRES = {
+        1: "Cámara del producto",
+        2: "Cámara de los denominadores",
+        3: "Cámara del radical",
+        4: "Cámara del logaritmo",
+        5: "Cámara exponencial"
+      };
+
+      function GrimorioInteractivo({ configuracion, alPreparar }) {
+        const [salaNum, setSalaNum] = React.useState(1);
+        const [sala, setSala] = React.useState(() =>
+          gmConstruirSala(1, 0)
+        );
+        const [pasoIdx, setPasoIdx] = React.useState(0);
+        const [espectros, setEspectros] = React.useState([]);
+        const [seleccion, setSeleccion] = React.useState(null);
+        const [leccion, setLeccion] = React.useState(null);
+        const [tiembla, setTiembla] = React.useState(null);
+        const [fase, setFase] = React.useState("cartas");
+        const [juicios, setJuicios] = React.useState({});
+        const [jugadas, setJugadas] = React.useState(0);
+        const [tropiezos, setTropiezos] = React.useState(0);
+        const [totales, setTotales] = React.useState({
+          aciertos: 0,
+          candidatas: 0,
+          tropiezos: 0
+        });
+        const audioRef = React.useRef(null);
+        const panelRef = React.useRef(null);
+
+        React.useEffect(() => {
+          if (window.katex) {
+            alPreparar();
+          }
+        }, [alPreparar]);
+
+        React.useEffect(() => {
+          if (tiembla === null) {
+            return undefined;
+          }
+          const temporizador = window.setTimeout(
+            () => setTiembla(null),
+            450
+          );
+          return () => window.clearTimeout(temporizador);
+        }, [tiembla]);
+
+        React.useEffect(() => {
+          if (fase !== "cartas" && panelRef.current) {
+            panelRef.current.focus();
+          }
+        }, [fase]);
+
+        if (!window.katex) {
+          return null;
+        }
+
+        const sonido = (frecuencias, duracion) => {
+          try {
+            if (!audioRef.current) {
+              const Contexto =
+                window.AudioContext || window.webkitAudioContext;
+              if (!Contexto) {
+                return;
+              }
+              audioRef.current = new Contexto();
+            }
+            const ctx = audioRef.current;
+            if (ctx.state === "suspended") {
+              ctx.resume();
+            }
+            const ahora = ctx.currentTime;
+            frecuencias.forEach((frecuencia) => {
+              const osc = ctx.createOscillator();
+              const ganancia = ctx.createGain();
+              osc.type = "triangle";
+              osc.frequency.value = frecuencia;
+              ganancia.gain.setValueAtTime(0.0001, ahora);
+              ganancia.gain.exponentialRampToValueAtTime(
+                0.05,
+                ahora + 0.02
+              );
+              ganancia.gain.exponentialRampToValueAtTime(
+                0.0001,
+                ahora + duracion
+              );
+              osc.connect(ganancia).connect(ctx.destination);
+              osc.start(ahora);
+              osc.stop(ahora + duracion + 0.05);
+            });
+          } catch (error) {
+            /* sin audio */
+          }
+        };
+
+        const cargarSala = (numero) => {
+          const opciones = GM_PARAMETROS[numero].length;
+          const eleccion = Math.floor(Math.random() * opciones);
+          setSalaNum(numero);
+          setSala(gmConstruirSala(numero, eleccion));
+          setPasoIdx(0);
+          setEspectros([]);
+          setSeleccion(null);
+          setLeccion(null);
+          setFase("cartas");
+          setJuicios({});
+          setJugadas(0);
+          setTropiezos(0);
+        };
+
+        const reiniciarGrimorio = () => {
+          setTotales({ aciertos: 0, candidatas: 0, tropiezos: 0 });
+          cargarSala(1);
+        };
+
+        const paso = sala.pasos[pasoIdx];
+        const carta =
+          seleccion === null ? null : paso.cartas[seleccion];
+
+        const jugarCarta = () => {
+          if (!carta) {
+            return;
+          }
+          if (carta.tipo === "trampa") {
+            setTropiezos(tropiezos + 1);
+            setLeccion(carta.leccion);
+            setTiembla(seleccion);
+            setSeleccion(null);
+            sonido([131, 98], 0.3);
+            return;
+          }
+          setJugadas(jugadas + 1);
+          setLeccion(null);
+          if (carta.espectros) {
+            setEspectros(espectros.concat(carta.espectros));
+            sonido([196, 156], 0.45);
+          } else {
+            sonido([330, 415], 0.25);
+          }
+          setSeleccion(null);
+          if (carta.salto === "juicio") {
+            setFase("juicio");
+          } else {
+            setPasoIdx(carta.salto);
+          }
+        };
+
+        const juzgar = (indice, eleccion) => {
+          const nuevos = {};
+          Object.keys(juicios).forEach((clave) => {
+            nuevos[clave] = juicios[clave];
+          });
+          nuevos[indice] = eleccion;
+          setJuicios(nuevos);
+          const candidata = sala.juicio[indice];
+          const acierto =
+            (eleccion === "conserva") === candidata.esSolucion;
+          sonido(acierto ? [392, 494] : [131, 98], 0.4);
+        };
+
+        const juicioCompleto =
+          Object.keys(juicios).length === sala.juicio.length;
+        const aciertosSala = sala.juicio.reduce(
+          (suma, candidata, indice) =>
+            suma +
+            ((juicios[indice] === "conserva") ===
+            candidata.esSolucion
+              ? 1
+              : 0),
+          0
+        );
+
+        const leerRecord = () => {
+          try {
+            return window.localStorage.getItem("grimorio-mejor");
+          } catch (error) {
+            return null;
+          }
+        };
+
+        const sellarSala = () => {
+          const nuevos = {
+            aciertos: totales.aciertos + aciertosSala,
+            candidatas: totales.candidatas + sala.juicio.length,
+            tropiezos: totales.tropiezos + tropiezos
+          };
+          setTotales(nuevos);
+          if (salaNum === 5) {
+            const brutos =
+              nuevos.aciertos * 10 - nuevos.tropiezos * 2;
+            const puntos = brutos > 0 ? brutos : 0;
+            try {
+              const previo = leerRecord();
+              if (previo === null || puntos > Number(previo)) {
+                window.localStorage.setItem(
+                  "grimorio-mejor",
+                  String(puntos)
+                );
+              }
+            } catch (error) {
+              /* sin memoria */
+            }
+            setFase("final");
+          } else {
+            setFase("resumen");
+          }
+        };
+
+        const puntosFinales = () => {
+          const brutos =
+            totales.aciertos * 10 - totales.tropiezos * 2;
+          return brutos > 0 ? brutos : 0;
+        };
+
+        return (
+          <div className="componente-interactivo">
+            <p className="titulo-interactivo">
+              {configuracion.titulo ||
+                "El Grimorio de las Transformaciones"}
+            </p>
+            <p className="instruccion-interactivo">
+              Destila cada ecuación jugando cartas de
+              transformación. Las cartas de borde rojo son legales
+              pero traicioneras: meten espectros en el frasco, y en
+              el Juicio final cada candidata tendrá que
+              enfrentarse al contrato original.
+            </p>
+
+            <div
+              className="gm-camaras"
+              role="group"
+              aria-label="Cámaras del grimorio"
+            >
+              {[1, 2, 3, 4, 5].map((numero) => (
+                <span
+                  key={"sala" + numero}
+                  className="chip-control"
+                  style={
+                    salaNum === numero
+                      ? { borderColor: "#7c3aed", color: "#5b21b6" }
+                      : undefined
+                  }
+                >
+                  {(numero < salaNum ? "✓ " : "") +
+                    numero +
+                    (salaNum === numero
+                      ? ". " + GM_NOMBRES[numero]
+                      : "")}
+                </span>
+              ))}
+            </div>
+
+            <p className="gm-contrato">
+              {"Contrato original: "}
+              <MatematicaEnLinea tex={sala.original} />
+            </p>
+
+            {espectros.length > 0 && (
+              <div
+                className="gm-frasco"
+                role="list"
+                aria-label="Frasco de espectros"
+              >
+                {espectros.map((espectro, indice) => (
+                  <span
+                    key={"espectro" + indice}
+                    className="gm-espectro"
+                    role="listitem"
+                  >
+                    <span aria-hidden="true">👻</span>
+                    <MatematicaEnLinea
+                      tex={espectro.etiquetaTex}
+                    />
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {fase === "cartas" && (
+              <div>
+                <FormulaViva tex={paso.tex} />
+                <div
+                  className="gm-mano"
+                  role="group"
+                  aria-label="Cartas en la mano"
+                >
+                  {paso.cartas.map((cartaMano, indice) => (
+                    <button
+                      key={cartaMano.nombre + indice}
+                      type="button"
+                      className={
+                        "gm-carta" +
+                        (cartaMano.tipo === "peligrosa"
+                          ? " gm-peligrosa"
+                          : "") +
+                        (tiembla === indice ? " gm-tiembla" : "")
+                      }
+                      aria-pressed={seleccion === indice}
+                      onClick={() => {
+                        setSeleccion(
+                          seleccion === indice ? null : indice
+                        );
+                        setLeccion(null);
+                      }}
+                    >
+                      {cartaMano.nombre}
+                    </button>
+                  ))}
+                </div>
+
+                {carta && (
+                  <div className="paso-interactivo">
+                    <span className="kicker-conjunto">
+                      {carta.nombre}
+                    </span>
+                    {carta.tipo === "trampa" ? (
+                      <p>
+                        Esta carta no parece encajar aquí…
+                        ¿por qué? Júgala si quieres comprobarlo.
+                      </p>
+                    ) : (
+                      <div>
+                        <p>
+                          {carta.tipo === "peligrosa"
+                            ? "Carta peligrosa: es legal, pero " +
+                              "meterá espectros en el frasco. " +
+                              "Así quedaría la ecuación:"
+                            : "Así quedaría la ecuación:"}
+                        </p>
+                        <FormulaViva tex={carta.previewTex} />
+                      </div>
+                    )}
+                    <div className="opciones-interactivo">
+                      <button type="button" onClick={jugarCarta}>
+                        Jugar la carta
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSeleccion(null)}
+                      >
+                        Devolverla a la mano
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {leccion && (
+                  <p className="nota-escala" aria-live="polite">
+                    {"La carta rebota: " + leccion + " (tropiezo " +
+                      tropiezos +
+                      ")"}
+                  </p>
+                )}
+
+                <p className="nota-escala">
+                  {"Jugadas: " +
+                    jugadas +
+                    " (par de la cámara: " +
+                    sala.parJugadas +
+                    "). Espectros en el frasco: " +
+                    espectros.length +
+                    "."}
+                </p>
+              </div>
+            )}
+
+            {fase === "juicio" && (
+              <div
+                className="paso-interactivo"
+                ref={panelRef}
+                tabIndex={-1}
+              >
+                <span className="kicker-conjunto">El Juicio</span>
+                <p>
+                  {"La fórmula entrega " +
+                    sala.juicio.length +
+                    " candidatas" +
+                    (espectros.length > 0
+                      ? ", y hay " +
+                        espectros.length +
+                        " espectros en el frasco. "
+                      : ". ") +
+                    "Decide el destino de cada una frente al " +
+                    "contrato original."}
+                </p>
+                {sala.juicio.map((candidata, indice) => {
+                  const eleccion = juicios[indice];
+                  const acierto =
+                    (eleccion === "conserva") ===
+                    candidata.esSolucion;
+                  return (
+                    <div
+                      key={"candidata" + indice}
+                      className="paso-interactivo"
+                    >
+                      <span className="kicker-conjunto">
+                        Candidata
+                      </span>
+                      <FormulaViva tex={candidata.etiquetaTex} />
+                      {eleccion === undefined ? (
+                        <div
+                          className="opciones-interactivo"
+                          role="group"
+                          aria-label={
+                            "Destino de la candidata " +
+                            (indice + 1)
+                          }
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              juzgar(indice, "conserva")
+                            }
+                          >
+                            Conservar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              juzgar(indice, "destierra")
+                            }
+                          >
+                            Desterrar
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div>
+                            {candidata.controles.map((control) => (
+                              <span
+                                key={control.titulo}
+                                className={
+                                  "chip-control " +
+                                  (control.pasa
+                                    ? "pasa"
+                                    : "no-pasa")
+                                }
+                              >
+                                <span>
+                                  {(control.pasa ? "✓ " : "✗ ") +
+                                    control.titulo +
+                                    ": "}
+                                </span>
+                                <MatematicaEnLinea
+                                  tex={control.detalleTex}
+                                />
+                              </span>
+                            ))}
+                          </div>
+                          <p aria-live="polite">
+                            {(acierto
+                              ? "Bien juzgado: "
+                              : "Juicio equivocado: ") +
+                              (candidata.esSolucion
+                                ? "es una solución de verdad."
+                                : "era un espectro.")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {juicioCompleto && (
+                  <div className="opciones-interactivo">
+                    <button type="button" onClick={sellarSala}>
+                      Sellar la cámara
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {fase === "resumen" && (
+              <div
+                className="veredicto-interactivo"
+                aria-live="polite"
+                ref={panelRef}
+                tabIndex={-1}
+              >
+                <strong>
+                  {sala.nombre +
+                    " sellada: " +
+                    aciertosSala +
+                    " de " +
+                    sala.juicio.length +
+                    " juicios certeros"}
+                </strong>
+                <p>
+                  {"Jugadas: " +
+                    jugadas +
+                    " (par " +
+                    sala.parJugadas +
+                    "), tropiezos: " +
+                    tropiezos +
+                    ". " +
+                    (tropiezos === 0 &&
+                    jugadas === sala.parJugadas
+                      ? "Destilación impecable."
+                      : "La siguiente cámara te espera.")}
+                </p>
+                <div className="opciones-interactivo">
+                  <button
+                    type="button"
+                    onClick={() => cargarSala(salaNum + 1)}
+                  >
+                    Siguiente cámara
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {fase === "final" && (
+              <div
+                className="veredicto-interactivo"
+                aria-live="polite"
+                ref={panelRef}
+                tabIndex={-1}
+              >
+                <strong>
+                  {"Grimorio completado: " +
+                    puntosFinales() +
+                    " puntos"}
+                </strong>
+                <p>
+                  {"Juicios certeros: " +
+                    totales.aciertos +
+                    " de " +
+                    totales.candidatas +
+                    ". Tropiezos: " +
+                    totales.tropiezos +
+                    "." +
+                    (leerRecord() !== null
+                      ? " Tu mejor marca: " +
+                        leerRecord() +
+                        " puntos."
+                      : "")}
+                </p>
+                <p>
+                  Las cinco cámaras esconden ecuaciones distintas
+                  en cada partida: vuelve a entrar y persigue la
+                  destilación perfecta.
+                </p>
+                <div className="opciones-interactivo">
+                  <button
+                    type="button"
+                    onClick={reiniciarGrimorio}
+                  >
+                    Volver a abrir el Grimorio
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      const montaje = document.getElementById("grimorio-montaje");
+      const preparado = () =>
+        document.body.classList.add("juego-listo");
+      const fallo = () =>
+        document.body.classList.remove("juego-listo");
+
+      try {
+        ReactDOM.createRoot(montaje).render(
+          <LimiteDeError alFallar={fallo}>
+            <GrimorioInteractivo
+              configuracion={{}}
+              alPreparar={preparado}
+            />
+          </LimiteDeError>
+        );
+      } catch (error) {
+        console.error("No se pudo montar el juego:", error);
+        fallo();
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,4005 @@
+<!doctype html>
+<html lang="es-ES">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0e1330">
+  <title>Los Guardianes de ℝ · Arcademia</title>
+  <!--
+    Juego: Los Guardianes de ℝ
+    Curso: 1.º de Bachillerato · Tema: Números reales (unidad 1)
+    Apuntes: https://marioeducastur.github.io/mat1/unidad_01_numeros_reales.html
+    Origen: migrado desde mat1/plantilla/shell.html (componente
+    «guardianes-reales»)
+  -->
+
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.29.7/babel.min.js"></script>
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --texto: #172033;
+      --texto-suave: #526077;
+      --fondo: #f2f5fa;
+      --superficie: #ffffff;
+      --borde: #d8e1ee;
+      --acento: #1d4ed8;
+      --acento-oscuro: #163b72;
+      --violeta: #6d28d9;
+      --violeta-suave: #f5f0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--fondo);
+    }
+
+    body {
+      min-width: 0;
+      margin: 0;
+      color: var(--texto);
+      background: var(--fondo);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+        Arial, sans-serif;
+      font-size: 1.035rem;
+      line-height: 1.7;
+    }
+
+    :focus-visible {
+      outline: 0.2rem solid var(--violeta);
+      outline-offset: 0.16rem;
+      box-shadow: 0 0 0 0.12rem #ffffff;
+    }
+
+    /* Cabecera y pie propios de Arcademia */
+
+    .cabecera-arcademia {
+      color: #fde68a;
+      background: #0e1330;
+      box-shadow: 0 5px 18px rgb(11 16 38 / 0.3);
+    }
+
+    .cabecera-interior,
+    .contenido-juego,
+    .pie-juego {
+      width: min(100%, 60rem);
+      margin: 0 auto;
+      padding: 0.65rem clamp(1rem, 3vw, 2rem);
+    }
+
+    .cabecera-interior {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .cabecera-arcademia a {
+      color: #fde68a;
+      font-weight: 750;
+      text-decoration: none;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .cabecera-arcademia a:hover,
+    .cabecera-arcademia a:focus-visible {
+      text-decoration: underline;
+    }
+
+    .cabecera-curso {
+      color: #c7d2fe;
+      font-size: 0.9rem;
+    }
+
+    .contenido-juego {
+      padding-top: 1.4rem;
+      padding-bottom: 1.4rem;
+    }
+
+    .aviso-carga {
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--borde);
+      border-radius: 0.85rem;
+      background: var(--superficie);
+      color: var(--texto-suave);
+    }
+
+    .juego-listo .aviso-carga {
+      display: none;
+    }
+
+    .pie-juego {
+      padding-bottom: 2rem;
+      color: var(--texto-suave);
+      font-size: 0.94rem;
+    }
+
+    .pie-juego a {
+      color: var(--acento);
+    }
+
+    /* Base compartida heredada de mat1 */
+
+    button {
+      min-height: 2.75rem;
+      padding: 0.55rem 0.9rem;
+      color: #ffffff;
+      background: var(--acento);
+      border: 0;
+      border-radius: 0.62rem;
+      box-shadow: 0 5px 12px rgb(29 78 216 / 0.16);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      transition:
+        transform 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease;
+    }
+
+    button:hover,
+    button:focus-visible {
+      background: var(--acento-oscuro);
+      box-shadow: 0 7px 15px rgb(22 59 114 / 0.2);
+      transform: translateY(-1px);
+    }
+
+    .componente-interactivo {
+      padding: 1.1rem 1.2rem 1.25rem;
+      border: 1px solid #d9cff8;
+      border-left: 0.34rem solid var(--violeta);
+      border-radius: 0.85rem;
+      background: var(--violeta-suave);
+      box-shadow: 0 12px 26px rgb(109 40 217 / 0.08);
+    }
+
+    .titulo-interactivo {
+      margin: 0 0 0.45rem;
+      color: var(--acento-oscuro);
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .instruccion-interactivo {
+      margin: 0 0 1rem;
+      color: var(--texto-suave);
+    }
+
+    @media (max-width: 26rem) {
+      .componente-interactivo {
+        padding: 0.9rem;
+        border-radius: 0.65rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    /* ---- Los Guardianes de ℝ (juego de repaso, solo web) ---- */
+
+    .guardianes-juego {
+      border-color: #0b1026;
+      border-left-color: #fbbf24;
+      background: #0e1330;
+      box-shadow: 0 16px 34px rgb(11 16 38 / 0.35);
+    }
+
+    .guardianes-juego .titulo-interactivo {
+      color: #fde68a;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .guardianes-juego .instruccion-interactivo {
+      color: #c7d2fe;
+    }
+
+    .gr-pantalla {
+      position: relative;
+      overflow: hidden;
+      padding: 1.1rem 1.15rem 1.3rem;
+      color: #eef2ff;
+      border: 3px solid #2c3567;
+      border-radius: 0.4rem;
+      background:
+        radial-gradient(circle at 18% 12%, rgb(99 102 241 / 0.16), transparent 42%),
+        linear-gradient(180deg, #141a3d 0%, #0e1330 70%);
+    }
+
+    .gr-pantalla::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgb(255 255 255 / 0.025) 0,
+        rgb(255 255 255 / 0.025) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    }
+
+    .gr-pantalla > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .gr-rotulo {
+      margin: 0 0 0.2rem;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-align: center;
+      text-transform: uppercase;
+      color: #fde68a;
+      text-shadow: 0 3px 0 rgb(11 16 38 / 0.9);
+    }
+
+    .gr-subrotulo {
+      margin: 0 0 0.9rem;
+      text-align: center;
+      color: #a5b4fc;
+      font-size: 0.95rem;
+    }
+
+    .gr-parpadeo {
+      animation: gr-parpadear 1.4s steps(2, end) infinite;
+    }
+
+    .gr-botonera {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      justify-content: center;
+      margin: 0.9rem 0 0.2rem;
+    }
+
+    button.gr-boton {
+      min-height: 2.9rem;
+      padding: 0.55rem 1.05rem;
+      color: #eef2ff;
+      border: 3px solid #0b1026;
+      border-radius: 0;
+      background: #3d478f;
+      box-shadow: 0 4px 0 #0b1026;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      transition: transform 90ms ease, background 90ms ease;
+    }
+
+    button.gr-boton:hover,
+    button.gr-boton:focus-visible {
+      background: #4c58b3;
+      box-shadow: 0 4px 0 #0b1026;
+      transform: translateY(-1px);
+    }
+
+    button.gr-boton:active {
+      box-shadow: 0 1px 0 #0b1026;
+      transform: translateY(3px);
+    }
+
+    button.gr-boton.es-principal {
+      color: #241a02;
+      background: #fbbf24;
+    }
+
+    button.gr-boton.es-principal:hover,
+    button.gr-boton.es-principal:focus-visible {
+      background: #fcd34d;
+    }
+
+    button.gr-boton.es-secundario {
+      background: #202750;
+      color: #c7d2fe;
+    }
+
+    button.gr-boton[aria-pressed="true"] {
+      color: #241a02;
+      background: #fbbf24;
+      box-shadow:
+        0 0 0 0.16rem #0e1330,
+        0 0 0 0.32rem #fbbf24;
+    }
+
+    .gr-marcadores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 0.75rem;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+    }
+
+    .gr-marcadores strong {
+      color: #fde68a;
+    }
+
+    .gr-corazones {
+      display: inline-flex;
+      gap: 0.22rem;
+      vertical-align: middle;
+    }
+
+    .gr-mapa {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      align-items: stretch;
+      justify-content: center;
+      margin: 1rem 0 0.4rem;
+    }
+
+    button.gr-nodo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      align-items: center;
+      width: 8.6rem;
+      min-height: 9.6rem;
+      padding: 0.6rem 0.45rem 0.55rem;
+      color: #dbe3ff;
+      border: 3px solid #2c3567;
+      border-radius: 0;
+      background: #171e45;
+      box-shadow: 0 4px 0 #0b1026;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1.3;
+      transition: transform 90ms ease, border-color 90ms ease;
+    }
+
+    button.gr-nodo:hover,
+    button.gr-nodo:focus-visible {
+      background: #1d2557;
+      box-shadow: 0 4px 0 #0b1026;
+      transform: translateY(-2px);
+    }
+
+    button.gr-nodo:disabled {
+      cursor: default;
+      opacity: 0.9;
+      transform: none;
+    }
+
+    button.gr-nodo.es-derrotado {
+      border-color: #14532d;
+      background: #10241c;
+      color: #86efac;
+    }
+
+    button.gr-nodo.es-actual {
+      border-color: #fbbf24;
+      animation: gr-latido 1.1s steps(2, end) infinite;
+    }
+
+    button.gr-nodo.es-bloqueado {
+      color: #aab4e4;
+      filter: grayscale(0.85);
+    }
+
+    .gr-nodo-numero {
+      color: #818cf8;
+      font-size: 0.72rem;
+    }
+
+    .gr-medalla {
+      color: #fbbf24;
+    }
+
+    .gr-sprite {
+      display: block;
+    }
+
+    .gr-sprite svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+    }
+
+    .gr-nodo .gr-sprite {
+      width: 4.4rem;
+    }
+
+    .gr-arena {
+      /* Altura del arco del salto: sigue al tamaño del sprite para que en
+         móvil el personaje no se salga por arriba. */
+      --gr-altura-salto: 6.2rem;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 15rem;
+      margin: 0.2rem 0 0.9rem;
+      padding: 0.9rem 1.1rem 1.35rem;
+      overflow: hidden;
+      border: 3px solid #2c3567;
+      background:
+        linear-gradient(180deg, #10173c 0%, #1b2258 58%, #232b6b 74%, transparent 74%),
+        repeating-linear-gradient(90deg, #2b1e0e 0, #2b1e0e 14px, #33250f 14px, #33250f 28px);
+    }
+
+    .gr-arena::before {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 26%;
+      background: repeating-linear-gradient(
+        90deg,
+        rgb(255 255 255 / 0.03) 0,
+        rgb(255 255 255 / 0.03) 7px,
+        transparent 7px,
+        transparent 14px
+      );
+      pointer-events: none;
+    }
+
+    .gr-luchador {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      align-items: center;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .gr-luchador .gr-sprite {
+      width: clamp(4.6rem, 13vw, 6.4rem);
+    }
+
+    .gr-luchador.es-jefe .gr-sprite {
+      width: clamp(6rem, 17vw, 8.4rem);
+    }
+
+    .gr-heroe .gr-sprite {
+      animation: gr-flotar 1.6s steps(2, end) infinite;
+    }
+
+    .gr-rival .gr-sprite {
+      animation: gr-flotar 1.3s steps(2, end) infinite reverse;
+    }
+
+    /* El héroe salta sobre el guardián y rebota; el guardián se aplasta un
+       instante después, cuando el salto llega arriba del todo. */
+    .gr-heroe.esta-saltando {
+      z-index: 3;
+    }
+
+    .gr-heroe.esta-saltando .gr-sprite {
+      animation: gr-salto-heroe 780ms cubic-bezier(0.4, 0, 0.5, 1);
+    }
+
+    .gr-rival.esta-aplastado .gr-sprite {
+      transform-origin: 50% 100%;
+      animation: gr-aplastar 520ms cubic-bezier(0.3, 1.4, 0.5, 1) 330ms;
+    }
+
+    .gr-rival.esta-cayendo .gr-sprite {
+      transform-origin: 50% 100%;
+      animation: gr-derribar 900ms ease-in 330ms forwards;
+    }
+
+    .gr-rival.esta-cargando .gr-sprite {
+      transform-origin: 50% 100%;
+      animation: gr-cargar-rival 700ms cubic-bezier(0.3, 1.5, 0.5, 1);
+    }
+
+    .gr-heroe.esta-golpeado .gr-sprite {
+      animation: gr-heroe-golpeado 900ms cubic-bezier(0.35, 0, 0.4, 1) forwards;
+    }
+
+    .gr-proyectil {
+      position: absolute;
+      z-index: 5;
+      top: 14%;
+      left: 6%;
+      width: 3.1rem;
+      pointer-events: none;
+      animation: gr-proyectil 760ms cubic-bezier(0.35, 0, 0.6, 1) forwards;
+    }
+
+    .gr-proyectil svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .gr-onomatopeya {
+      position: absolute;
+      z-index: 4;
+      padding: 0.1rem 0.5rem;
+      color: #241a02;
+      background: #fbbf24;
+      border: 3px solid #0b1026;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: clamp(0.85rem, 2.6vw, 1.15rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+      animation: gr-onomatopeya 900ms ease-out forwards;
+    }
+
+    .gr-onomatopeya.es-golpe {
+      top: 8%;
+      right: 12%;
+      animation-delay: 330ms;
+      opacity: 0;
+    }
+
+    .gr-onomatopeya.es-daño {
+      top: 10%;
+      left: 8%;
+      color: #fff1f2;
+      background: #b91c1c;
+      animation-delay: 420ms;
+      opacity: 0;
+    }
+
+    .gr-nombre-luchador {
+      padding: 0.14rem 0.5rem;
+      border: 2px solid #0b1026;
+      background: rgb(11 16 38 / 0.78);
+      color: #dbe3ff;
+    }
+
+    .gr-tarjeta-pregunta {
+      padding: 0.95rem 1rem 1.05rem;
+      border: 3px solid #2c3567;
+      background: rgb(9 13 32 / 0.82);
+    }
+
+    .gr-enunciado {
+      margin: 0 0 0.8rem;
+      color: #f5f7ff;
+      font-size: 1.06rem;
+      line-height: 1.6;
+    }
+
+    .gr-enunciado .katex {
+      font-size: 1.12em;
+    }
+
+    .gr-opciones {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+      gap: 0.6rem;
+    }
+
+    button.gr-opcion {
+      min-height: 3rem;
+      padding: 0.5rem 0.75rem;
+      color: #182035;
+      border: 3px solid #0b1026;
+      border-radius: 0;
+      background: #f4f1e3;
+      box-shadow: 0 4px 0 #0b1026;
+      font-size: 1rem;
+      font-weight: 650;
+      transition: transform 90ms ease, background 90ms ease;
+    }
+
+    button.gr-opcion:hover:not(:disabled),
+    button.gr-opcion:focus-visible:not(:disabled) {
+      background: #fffbe9;
+      box-shadow: 0 4px 0 #0b1026;
+      transform: translateY(-1px);
+    }
+
+    button.gr-opcion:disabled {
+      cursor: default;
+      opacity: 0.92;
+    }
+
+    button.gr-opcion.es-correcta {
+      color: #f0fdf4;
+      background: #15803d;
+      border-color: #052e16;
+      box-shadow: 0 4px 0 #052e16;
+    }
+
+    button.gr-opcion.es-fallida {
+      color: #fff1f2;
+      background: #b91c1c;
+      border-color: #450a0a;
+      box-shadow: 0 4px 0 #450a0a;
+    }
+
+    button.gr-opcion.es-apagada {
+      opacity: 0.55;
+    }
+
+    .gr-veredicto {
+      margin: 0.85rem 0 0;
+      padding: 0.75rem 0.9rem;
+      border: 3px solid #14532d;
+      background: rgb(20 83 45 / 0.28);
+      color: #dcfce7;
+      font-size: 0.98rem;
+      line-height: 1.55;
+    }
+
+    .gr-veredicto.es-fallo {
+      border-color: #7f1d1d;
+      background: rgb(127 29 29 / 0.26);
+      color: #fee2e2;
+    }
+
+    .gr-veredicto strong {
+      display: block;
+      margin-bottom: 0.15rem;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .gr-equipos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      justify-content: center;
+      margin: 0 0 0.8rem;
+    }
+
+    .gr-equipo {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.35rem 0.8rem;
+      border: 3px solid #0b1026;
+      background: #171e45;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      opacity: 0.62;
+    }
+
+    .gr-equipo.es-azul {
+      border-color: #1d4ed8;
+      color: #bfdbfe;
+    }
+
+    .gr-equipo.es-rojo {
+      border-color: #dc2626;
+      color: #fecaca;
+    }
+
+    .gr-equipo.tiene-turno {
+      opacity: 1;
+      box-shadow: 0 0 0 0.18rem #0e1330, 0 0 0 0.34rem currentColor;
+    }
+
+    .gr-final-cifras {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      justify-content: center;
+      margin: 0.9rem 0;
+    }
+
+    .gr-cifra {
+      min-width: 8.2rem;
+      padding: 0.6rem 0.8rem;
+      border: 3px solid #2c3567;
+      background: #171e45;
+      text-align: center;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    .gr-cifra strong {
+      display: block;
+      color: #fde68a;
+      font-size: 1.35rem;
+    }
+
+    .gr-cifra span {
+      color: #a5b4fc;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .gr-nota-pie {
+      margin: 0.7rem 0 0;
+      color: #a3adde;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .gr-anuncio {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    @keyframes gr-parpadear {
+      50% {
+        opacity: 0.25;
+      }
+    }
+
+    @keyframes gr-latido {
+      50% {
+        transform: translateY(-3px);
+      }
+    }
+
+    @keyframes gr-flotar {
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    @keyframes gr-salto-heroe {
+      0% {
+        transform: translate(0, 0) scaleY(1);
+      }
+      10% {
+        transform: translate(0, 0) scale(1.08, 0.82);
+      }
+      38% {
+        transform: translate(
+            calc(var(--gr-salto, 12rem) * 0.62),
+            calc(var(--gr-altura-salto) * -1.12)
+          )
+          scale(0.94, 1.08);
+      }
+      50% {
+        transform: translate(
+            var(--gr-salto, 12rem),
+            calc(var(--gr-altura-salto) * -0.58)
+          )
+          scale(1.06, 0.9);
+      }
+      62% {
+        transform: translate(
+            calc(var(--gr-salto, 12rem) * 0.9),
+            calc(var(--gr-altura-salto) * -1.16)
+          )
+          scale(0.95, 1.06);
+      }
+      84% {
+        transform: translate(
+          calc(var(--gr-salto, 12rem) * 0.3),
+          calc(var(--gr-altura-salto) * -0.34)
+        );
+      }
+      100% {
+        transform: translate(0, 0) scaleY(1);
+      }
+    }
+
+    @keyframes gr-aplastar {
+      0% {
+        transform: scale(1, 1);
+      }
+      22% {
+        transform: scale(1.3, 0.6);
+      }
+      52% {
+        transform: scale(0.9, 1.12);
+      }
+      76% {
+        transform: scale(1.05, 0.95);
+      }
+      100% {
+        transform: scale(1, 1);
+      }
+    }
+
+    @keyframes gr-derribar {
+      0% {
+        transform: scale(1, 1) rotate(0);
+        opacity: 1;
+      }
+      18% {
+        transform: scale(1.35, 0.5) rotate(0);
+        opacity: 1;
+      }
+      42% {
+        transform: scale(1.12, 0.86) rotate(-10deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.72, 0.72) translateY(3.4rem) rotate(26deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes gr-cargar-rival {
+      0% {
+        transform: scale(1, 1);
+      }
+      22% {
+        transform: scale(0.84, 1.18);
+      }
+      42% {
+        transform: scale(1.24, 0.82);
+      }
+      62% {
+        transform: scale(0.95, 1.06);
+      }
+      100% {
+        transform: scale(1, 1);
+      }
+    }
+
+    @keyframes gr-proyectil {
+      0% {
+        transform: translate(0, 0) rotate(0) scale(0.3);
+        opacity: 0;
+      }
+      18% {
+        transform: translate(0, -0.6rem) rotate(90deg) scale(1);
+        opacity: 1;
+      }
+      58% {
+        transform: translate(calc(var(--gr-salto, 12rem) * -0.5), -3rem)
+          rotate(420deg) scale(1.1);
+        opacity: 1;
+      }
+      88% {
+        transform: translate(calc(var(--gr-salto, 12rem) * -1), 0)
+          rotate(760deg) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(calc(var(--gr-salto, 12rem) * -1), 0)
+          rotate(800deg) scale(1.9);
+        opacity: 0;
+      }
+    }
+
+    @keyframes gr-heroe-golpeado {
+      0%,
+      44% {
+        transform: translate(0, 0) rotate(0);
+      }
+      54% {
+        transform: translate(-1rem, -2.6rem) rotate(-70deg);
+      }
+      68% {
+        transform: translate(-2.2rem, -3.4rem) rotate(-230deg);
+      }
+      84% {
+        transform: translate(-2.9rem, -0.4rem) rotate(-350deg);
+      }
+      93% {
+        transform: translate(-2.6rem, 0.4rem) rotate(-368deg);
+      }
+      100% {
+        transform: translate(-2.4rem, 0.35rem) rotate(-360deg);
+      }
+    }
+
+    @keyframes gr-onomatopeya {
+      0% {
+        opacity: 0;
+        transform: scale(0.4) rotate(-12deg);
+      }
+      22% {
+        opacity: 1;
+        transform: scale(1.15) rotate(-6deg);
+      }
+      45% {
+        opacity: 1;
+        transform: scale(1) rotate(-6deg);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.1) translateY(-1.6rem) rotate(-6deg);
+      }
+    }
+
+
+    @media (max-width: 640px) {
+      .gr-arena {
+        --gr-altura-salto: 4.4rem;
+        gap: 0.4rem;
+        min-height: 11rem;
+        padding: 0.7rem 0.6rem 1.1rem;
+      }
+
+      button.gr-nodo {
+        width: 7.1rem;
+        min-height: 8.6rem;
+      }
+
+      .gr-rotulo {
+        font-size: 1.16rem;
+      }
+    }
+
+
+    /* ---- Tema retro del salón: cromo de la página ---- */
+
+    html {
+      background: #0e1330;
+    }
+
+    body {
+      color: #e2e8f0;
+      background:
+        radial-gradient(
+          70rem 30rem at 50% -6rem,
+          rgb(167 139 250 / 0.14),
+          transparent 60%
+        ),
+        linear-gradient(180deg, #0a0e24 0%, #0e1330 30%, #0c1029 100%);
+    }
+
+    /* Cielo estrellado de píxeles, como en la portada. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        radial-gradient(rgb(199 210 254 / 0.4) 1px, transparent 1.5px),
+        radial-gradient(rgb(251 191 36 / 0.3) 1px, transparent 1.5px),
+        radial-gradient(rgb(56 224 240 / 0.28) 1px, transparent 1.5px);
+      background-size:
+        190px 170px,
+        230px 210px,
+        310px 260px;
+      background-position:
+        12px 24px,
+        84px 118px,
+        150px 60px;
+      pointer-events: none;
+    }
+
+    :focus-visible {
+      outline: 0.2rem solid #fbbf24;
+      outline-offset: 0.16rem;
+      box-shadow: 0 0 0 0.12rem #0e1330;
+    }
+
+    /* La cabecera se remata con su orla de bombillas de marquesina. */
+    .cabecera-arcademia {
+      position: relative;
+      border-bottom: 3px solid #2c3467;
+    }
+
+    .cabecera-arcademia::after {
+      content: "";
+      position: absolute;
+      left: 0.9rem;
+      right: 0.9rem;
+      bottom: 0.18rem;
+      height: 0.5rem;
+      background-image:
+        radial-gradient(
+          circle at 0.25rem 50%,
+          #fde68a 0 0.14rem,
+          rgb(251 191 36 / 0.28) 0.21rem,
+          transparent 0.27rem
+        );
+      background-size: 1.3rem 100%;
+      background-repeat: repeat-x;
+      animation: bombillas-juego 1.6s steps(2, jump-none) infinite;
+      pointer-events: none;
+    }
+
+    @keyframes bombillas-juego {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.35;
+      }
+    }
+
+    .cabecera-interior {
+      padding-bottom: 1rem;
+    }
+
+    .aviso-carga {
+      color: #c7d2fe;
+      border: 2px dashed #333b6e;
+      background: rgb(10 14 36 / 0.5);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+    }
+
+    .pie-juego {
+      color: #8b95c9;
+    }
+
+    .pie-juego a {
+      color: #7dd3fc;
+    }
+
+    .pie-juego a:hover,
+    .pie-juego a:focus-visible {
+      color: #fde68a;
+    }
+  </style>
+</head>
+<body>
+  <header class="cabecera-arcademia">
+    <div class="cabecera-interior">
+      <a href="../../index.html">← Arcademia</a>
+      <span class="cabecera-curso">
+        1.º de Bachillerato · Números reales
+      </span>
+    </div>
+  </header>
+
+  <main class="contenido-juego">
+    <p class="aviso-carga" id="guardianes-respaldo">
+      El juego necesita JavaScript y, la primera vez, conexión para cargar
+      React y KaTeX. Si este mensaje no desaparece, recarga la página con
+      conexión.
+    </p>
+    <div id="guardianes-montaje"></div>
+  </main>
+
+  <footer class="pie-juego">
+    <p>
+      Aprende esto en la
+      <a href="https://marioeducastur.github.io/mat1/unidad_01_numeros_reales.html">unidad 1
+      (Números reales) de Matemáticas I</a>.
+    </p>
+  </footer>
+
+  <script type="text/babel" data-presets="env,react">
+    (() => {
+      if (!window.React || !window.ReactDOM) {
+        return;
+      }
+
+      class LimiteDeError extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = { haFallado: false };
+        }
+
+        static getDerivedStateFromError() {
+          return { haFallado: true };
+        }
+
+        componentDidCatch(error) {
+          console.error("Fallo en un bloque interactivo:", error);
+          this.props.alFallar();
+        }
+
+        render() {
+          return this.state.haFallado ? null : this.props.children;
+        }
+      }
+      function MatematicaEnLinea({ tex }) {
+        if (!window.katex) {
+          return <span>{tex}</span>;
+        }
+
+        return (
+          <span
+            dangerouslySetInnerHTML={{
+              __html: window.katex.renderToString(tex, {
+                displayMode: false,
+                output: "htmlAndMathml",
+                strict: "ignore",
+                throwOnError: false
+              })
+            }}
+          />
+        );
+      }
+
+      function FormulaViva({ tex }) {
+        if (!window.katex) {
+          return <p className="formula-viva">{tex}</p>;
+        }
+
+        return (
+          <p
+            className="formula-viva"
+            dangerouslySetInnerHTML={{
+              __html: window.katex.renderToString(tex, {
+                displayMode: true,
+                output: "htmlAndMathml",
+                strict: "ignore",
+                throwOnError: false
+              })
+            }}
+          />
+        );
+      }
+      function numeroFinito(valor, alternativa) {
+        const numero = Number(valor);
+        return Number.isFinite(numero) ? numero : alternativa;
+      }
+
+      function limitar(valor, minimo, maximo) {
+        return Math.min(Math.max(valor, minimo), maximo);
+      }
+
+      function formatearExtremo(valor) {
+        return String(valor).replace(".", ",");
+      }
+
+      function notacionIntervalo(intervalo) {
+        const izquierda = intervalo.cerradoIzquierda ? "[" : "(";
+        const derecha = intervalo.cerradoDerecha ? "]" : ")";
+        // Con extremos decimales la coma decimal chocaría con la coma
+        // separadora, así que el separador pasa a punto y coma.
+        const separador =
+          Number.isInteger(intervalo.inicio) &&
+          Number.isInteger(intervalo.fin)
+            ? ", "
+            : "; ";
+        return (
+          `${izquierda}${formatearExtremo(intervalo.inicio)}${separador}` +
+          `${formatearExtremo(intervalo.fin)}${derecha}`
+        );
+      }
+
+      function contieneExtremo(intervalo, valor) {
+        if (valor > intervalo.inicio && valor < intervalo.fin) {
+          return true;
+        }
+        if (valor === intervalo.inicio) {
+          return intervalo.cerradoIzquierda;
+        }
+        if (valor === intervalo.fin) {
+          return intervalo.cerradoDerecha;
+        }
+        return false;
+      }
+
+      function interseccionIntervalos(a, b) {
+        const inicio = Math.max(a.inicio, b.inicio);
+        const fin = Math.min(a.fin, b.fin);
+
+        if (inicio > fin) {
+          return "∅";
+        }
+
+        const cerradoIzquierda =
+          contieneExtremo(a, inicio) && contieneExtremo(b, inicio);
+        const cerradoDerecha =
+          contieneExtremo(a, fin) && contieneExtremo(b, fin);
+
+        if (inicio === fin) {
+          return cerradoIzquierda && cerradoDerecha
+            ? `{${formatearExtremo(inicio)}}`
+            : "∅";
+        }
+
+        return notacionIntervalo({
+          inicio,
+          fin,
+          cerradoIzquierda,
+          cerradoDerecha
+        });
+      }
+
+      function unionIntervalos(a, b) {
+        const primero =
+          a.inicio < b.inicio ||
+          (a.inicio === b.inicio && a.fin <= b.fin)
+            ? a
+            : b;
+        const segundo = primero === a ? b : a;
+        const conectados =
+          primero.fin > segundo.inicio ||
+          (
+            primero.fin === segundo.inicio &&
+            (
+              primero.cerradoDerecha ||
+              segundo.cerradoIzquierda
+            )
+          );
+
+        if (!conectados) {
+          return `${notacionIntervalo(primero)} ∪ ${notacionIntervalo(segundo)}`;
+        }
+
+        const inicio = Math.min(a.inicio, b.inicio);
+        const fin = Math.max(a.fin, b.fin);
+        const cerradoIzquierda =
+          (a.inicio === inicio && a.cerradoIzquierda) ||
+          (b.inicio === inicio && b.cerradoIzquierda);
+        const cerradoDerecha =
+          (a.fin === fin && a.cerradoDerecha) ||
+          (b.fin === fin && b.cerradoDerecha);
+
+        return notacionIntervalo({
+          inicio,
+          fin,
+          cerradoIzquierda,
+          cerradoDerecha
+        });
+      }
+      // ---- Los Guardianes de ℝ: utilidades del juego ----
+
+      const grEntero = (minimo, maximo) =>
+        minimo + Math.floor(Math.random() * (maximo - minimo + 1));
+
+      const grDe = (lista) => lista[Math.floor(Math.random() * lista.length)];
+
+      const grBarajar = (lista) => {
+        const copia = lista.slice();
+        for (let i = copia.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temporal = copia[i];
+          copia[i] = copia[j];
+          copia[j] = temporal;
+        }
+        return copia;
+      };
+
+      const grMcd = (a, b) => (b === 0 ? Math.abs(a) : grMcd(b, a % b));
+
+      const grComaTex = (valor) => String(valor).replace(".", "{,}");
+
+      const grComaTexto = (valor) => String(valor).replace(".", ",");
+
+      const grFrac = (numerador, denominador) =>
+        "\\frac{" + numerador + "}{" + denominador + "}";
+
+      // La raíz cuadrada se escribe sin índice, como en clase.
+      const grRadicalTex = (indice, radicando) =>
+        indice === 2
+          ? "\\sqrt{" + radicando + "}"
+          : "\\sqrt[" + indice + "]{" + radicando + "}";
+
+      // Evita mostrar «X = X» cuando la fracción de partida ya es irreducible.
+      const grCadenaSimplificacion = (original, simplificada) =>
+        original === simplificada ? original : original + "=" + simplificada;
+
+      const grFracSimplificada = (numerador, denominador) => {
+        const divisor = grMcd(numerador, denominador);
+        return {
+          num: numerador / divisor,
+          den: denominador / divisor,
+          tex:
+            denominador / divisor === 1
+              ? String(numerador / divisor)
+              : grFrac(numerador / divisor, denominador / divisor)
+        };
+      };
+
+      // Cada opción lleva una clave textual única; la corrección se marca
+      // con esCorrecta. La pregunta baraja las opciones al construirse.
+      const grOpcion = (contenido, valor) => ({
+        clave: contenido.m !== undefined ? "m:" + contenido.m : "t:" + contenido.t,
+        contenido,
+        valor
+      });
+
+      const grPregunta = (enunciado, correcta, distractores, explicacion) => {
+        const vistas = { [correcta.clave]: true };
+        const limpias = [];
+        distractores.forEach((opcion) => {
+          const repiteValor =
+            opcion.valor !== undefined &&
+            correcta.valor !== undefined &&
+            Math.abs(opcion.valor - correcta.valor) < 1e-9;
+          if (!vistas[opcion.clave] && !repiteValor) {
+            vistas[opcion.clave] = true;
+            limpias.push(opcion);
+          }
+        });
+        if (limpias.length < 1) {
+          return null;
+        }
+        // Se barajan antes de recortar para que los generadores con cuatro
+        // distractores no muestren siempre los tres primeros.
+        const opciones = grBarajar(
+          [{ ...correcta, esCorrecta: true }].concat(
+            grBarajar(limpias)
+              .slice(0, 3)
+              .map((opcion) => ({ ...opcion, esCorrecta: false }))
+          )
+        );
+        return { enunciado, opciones, explicacion, clave: correcta.clave + enunciado.map((p) => p.m || p.t).join("|") };
+      };
+
+      // ---- Sonido retro con WebAudio (sin dependencias) ----
+
+      const grAudio = { contexto: null };
+
+      const grContextoAudio = () => {
+        if (!grAudio.contexto) {
+          const Constructor = window.AudioContext || window.webkitAudioContext;
+          if (!Constructor) {
+            return null;
+          }
+          grAudio.contexto = new Constructor();
+        }
+        if (grAudio.contexto.state === "suspended") {
+          grAudio.contexto.resume();
+        }
+        return grAudio.contexto;
+      };
+
+      const grNota = (contexto, frecuencia, retraso, duracion, tipo, volumen) => {
+        const oscilador = contexto.createOscillator();
+        const ganancia = contexto.createGain();
+        const inicio = contexto.currentTime + retraso;
+        oscilador.type = tipo;
+        oscilador.frequency.setValueAtTime(frecuencia, inicio);
+        ganancia.gain.setValueAtTime(0, inicio);
+        ganancia.gain.linearRampToValueAtTime(volumen, inicio + 0.012);
+        ganancia.gain.exponentialRampToValueAtTime(0.0008, inicio + duracion);
+        oscilador.connect(ganancia).connect(contexto.destination);
+        oscilador.start(inicio);
+        oscilador.stop(inicio + duracion + 0.03);
+      };
+
+      const grSonar = (nombre, activo) => {
+        if (!activo) {
+          return;
+        }
+        const contexto = grContextoAudio();
+        if (!contexto) {
+          return;
+        }
+        const V = 0.16;
+        if (nombre === "acierto") {
+          grNota(contexto, 659.25, 0, 0.1, "square", V);
+          grNota(contexto, 987.77, 0.09, 0.16, "square", V);
+        } else if (nombre === "fallo") {
+          grNota(contexto, 196, 0, 0.16, "sawtooth", V);
+          grNota(contexto, 138.59, 0.14, 0.24, "sawtooth", V);
+        } else if (nombre === "victoria") {
+          [523.25, 659.25, 783.99, 1046.5].forEach((frecuencia, i) => {
+            grNota(contexto, frecuencia, i * 0.11, 0.18, "square", V);
+          });
+          grNota(contexto, 1318.51, 0.46, 0.4, "square", V);
+        } else if (nombre === "derrota") {
+          [392, 329.63, 261.63, 196].forEach((frecuencia, i) => {
+            grNota(contexto, frecuencia, i * 0.17, 0.22, "triangle", V + 0.04);
+          });
+        } else if (nombre === "jefe") {
+          [98, 92.5, 98, 110].forEach((frecuencia, i) => {
+            grNota(contexto, frecuencia, i * 0.16, 0.2, "sawtooth", V);
+          });
+        } else if (nombre === "paso") {
+          grNota(contexto, 440, 0, 0.06, "square", V * 0.6);
+        }
+      };
+
+      // ---- Guardianes 1-3: bancos de preguntas ----
+
+      const GR_CONJUNTOS_OPCIONES = [
+        grOpcion({ m: "\\mathbb N" }),
+        grOpcion({ m: "\\mathbb Z" }),
+        grOpcion({ m: "\\mathbb Q" }),
+        grOpcion({ m: "\\mathbb R\\setminus\\mathbb Q" })
+      ];
+
+      const GR_NUMEROS_CLASIFICAR = [
+        { tex: "\\sqrt{49}", conjunto: 0, porque: [{ m: "\\sqrt{49}=7" }, { t: ", un número natural." }] },
+        { tex: "\\sqrt{81}", conjunto: 0, porque: [{ m: "\\sqrt{81}=9" }, { t: ", un número natural." }] },
+        { tex: "2^{5}", conjunto: 0, porque: [{ m: "2^{5}=32" }, { t: ", un número natural." }] },
+        { tex: "\\frac{18}{6}", conjunto: 0, porque: [{ m: "\\frac{18}{6}=3" }, { t: ": la fracción se simplifica hasta un natural." }] },
+        { tex: "-11", conjunto: 1, porque: [{ t: "Es entero negativo: está en " }, { m: "\\mathbb Z" }, { t: " pero no en " }, { m: "\\mathbb N" }, { t: "." }] },
+        { tex: "-\\sqrt{16}", conjunto: 1, porque: [{ m: "-\\sqrt{16}=-4" }, { t: ", un entero que no es natural." }] },
+        { tex: "\\frac{-20}{4}", conjunto: 1, porque: [{ m: "\\frac{-20}{4}=-5" }, { t: ", un entero que no es natural." }] },
+        { tex: "\\frac{7}{4}", conjunto: 2, porque: [{ t: "Es un cociente de enteros que no da entero: racional." }] },
+        { tex: "1{,}75", conjunto: 2, porque: [{ t: "Su expresión decimal es exacta, así que es racional." }] },
+        { tex: "0{,}\\overline{6}", conjunto: 2, porque: [{ t: "Es periódico: " }, { m: "0{,}\\overline{6}=\\frac23" }, { t: ", racional." }] },
+        { tex: "-\\frac{5}{9}", conjunto: 2, porque: [{ t: "Cociente de enteros no entero: racional." }] },
+        { tex: "\\sqrt{7}", conjunto: 3, porque: [{ t: "7 no es cuadrado perfecto: " }, { m: "\\sqrt{7}" }, { t: " es irracional." }] },
+        { tex: "\\pi", conjunto: 3, porque: [{ m: "\\pi" }, { t: " tiene infinitas cifras decimales no periódicas." }] },
+        { tex: "e", conjunto: 3, porque: [{ m: "e" }, { t: " es irracional: su decimal no es periódico." }] },
+        { tex: "\\sqrt[3]{5}", conjunto: 3, porque: [{ t: "5 no es cubo perfecto: " }, { m: "\\sqrt[3]{5}" }, { t: " es irracional." }] },
+        { tex: "1+\\sqrt{2}", conjunto: 3, porque: [{ t: "Racional más irracional siempre da irracional." }] },
+        { tex: "\\frac{\\sqrt{3}}{2}", conjunto: 3, porque: [{ t: "Irracional dividido por racional no nulo sigue siendo irracional." }] },
+        { tex: "0{,}101001000\\ldots", conjunto: 3, porque: [{ t: "Sus cifras no se repiten por bloques: no es periódico." }] }
+      ];
+
+      const GR_VERDADERO_FALSO = [
+        {
+          enunciado: [{ t: "Se cumple la cadena " }, { m: "\\mathbb N\\subset\\mathbb Z\\subset\\mathbb Q\\subset\\mathbb R" }, { t: "." }],
+          cierto: true,
+          porque: [{ t: "Es la cadena de inclusiones de la unidad: cada conjunto amplía el anterior." }]
+        },
+        {
+          enunciado: [{ t: "Se cumple " }, { m: "\\mathbb Q\\subset\\mathbb Z" }, { t: "." }],
+          cierto: false,
+          porque: [{ t: "Hay racionales que no son enteros, como " }, { m: "\\frac12" }, { t: ". La inclusión correcta es la contraria." }]
+        },
+        {
+          enunciado: [{ t: "Todo número decimal periódico es racional." }],
+          cierto: true,
+          porque: [{ t: "Su fracción generatriz existe siempre: por eso es racional." }]
+        },
+        {
+          enunciado: [{ t: "La suma de dos irracionales es siempre irracional." }],
+          cierto: false,
+          porque: [{ m: "\\sqrt2+(-\\sqrt2)=0" }, { t: " es un contraejemplo: la suma puede ser racional." }]
+        },
+        {
+          enunciado: [{ t: "El producto de un racional no nulo por un irracional es irracional." }],
+          cierto: true,
+          porque: [{ t: "Si fuese racional, al dividir por el racional obtendríamos que el irracional también lo era." }]
+        },
+        {
+          enunciado: [{ t: "Entre dos racionales distintos siempre hay otro racional." }],
+          cierto: true,
+          porque: [{ t: "Es la densidad: la media de ambos ya es un racional intermedio." }]
+        },
+        {
+          enunciado: [{ t: "Todo número real es racional o irracional." }],
+          cierto: true,
+          porque: [{ m: "\\mathbb R=\\mathbb Q\\cup(\\mathbb R\\setminus\\mathbb Q)" }, { t: ": no hay más posibilidades." }]
+        },
+        {
+          enunciado: [{ t: "El número " }, { m: "\\frac{22}{7}" }, { t: " es igual a " }, { m: "\\pi" }, { t: "." }],
+          cierto: false,
+          porque: [{ m: "\\frac{22}{7}" }, { t: " es racional y solo aproxima a " }, { m: "\\pi" }, { t: ", que es irracional." }]
+        },
+        {
+          enunciado: [{ t: "Todo número con infinitas cifras decimales es irracional." }],
+          cierto: false,
+          porque: [{ m: "0{,}\\overline{3}=\\frac13" }, { t: " tiene infinitas cifras y es racional: lo que decide es que se repitan por bloques." }]
+        },
+        {
+          enunciado: [{ t: "Si un número es entero, también es racional." }],
+          cierto: true,
+          porque: [{ t: "Todo entero se escribe como fracción de denominador 1, por ejemplo " }, { m: "5=\\frac51" }, { t: "." }]
+        },
+        {
+          enunciado: [{ t: "El producto de dos irracionales es siempre irracional." }],
+          cierto: false,
+          porque: [{ m: "\\sqrt2\\cdot\\sqrt2=2" }, { t: " es un contraejemplo: el producto puede ser racional." }]
+        },
+        {
+          enunciado: [{ t: "Un número decimal exacto siempre se puede escribir como fracción." }],
+          cierto: true,
+          porque: [{ t: "Basta quitar la coma y dividir entre la unidad seguida de ceros, por ejemplo " }, { m: "0{,}75=\\frac{75}{100}=\\frac34" }, { t: "." }]
+        }
+      ];
+
+      const GR_RACIONAL_O_NO = [
+        { tex: "\\sqrt{36}", esRacional: true, porque: [{ m: "\\sqrt{36}=6" }, { t: ": racional (y natural)." }] },
+        { tex: "\\sqrt{12}", esRacional: false, porque: [{ m: "\\sqrt{12}=2\\sqrt3" }, { t: " y " }, { m: "\\sqrt3" }, { t: " es irracional." }] },
+        { tex: "\\frac{22}{7}", esRacional: true, porque: [{ t: "Es un cociente de enteros: racional, aunque se parezca a " }, { m: "\\pi" }, { t: "." }] },
+        { tex: "0{,}\\overline{9}", esRacional: true, porque: [{ m: "0{,}\\overline{9}=1" }, { t: ": un número racional disfrazado." }] },
+        { tex: "\\sqrt{2}\\cdot\\sqrt{8}", esRacional: true, porque: [{ m: "\\sqrt2\\cdot\\sqrt8=\\sqrt{16}=4" }, { t: "." }] },
+        { tex: "\\sqrt{2}+\\sqrt{8}", esRacional: false, porque: [{ m: "\\sqrt2+\\sqrt8=3\\sqrt2" }, { t: ", que es irracional." }] },
+        { tex: "(1+\\sqrt2)-\\sqrt2", esRacional: true, porque: [{ t: "La resta elimina la parte irracional: queda 1." }] },
+        { tex: "\\sqrt{18}", esRacional: false, porque: [{ m: "\\sqrt{18}=3\\sqrt2" }, { t: " y " }, { m: "\\sqrt2" }, { t: " es irracional." }] },
+        { tex: "\\frac{\\pi}{2}", esRacional: false, porque: [{ t: "Dividir un irracional entre un racional no nulo no lo convierte en racional." }] },
+        { tex: "\\sqrt{3}\\cdot\\sqrt{6}", esRacional: false, porque: [{ m: "\\sqrt3\\cdot\\sqrt6=\\sqrt{18}=3\\sqrt2" }, { t: ", irracional." }] },
+        { tex: "1+\\sqrt{5}", esRacional: false, porque: [{ t: "Racional más irracional siempre da irracional." }] }
+      ];
+
+      const grGenClasificar = () => {
+        const caso = grDe(GR_NUMEROS_CLASIFICAR);
+        return grPregunta(
+          [{ t: "¿Cuál es el conjunto más pequeño de estos cuatro al que pertenece " }, { m: caso.tex }, { t: "?" }],
+          GR_CONJUNTOS_OPCIONES[caso.conjunto],
+          GR_CONJUNTOS_OPCIONES.filter((opcion, i) => i !== caso.conjunto),
+          caso.porque
+        );
+      };
+
+      const grGenVerdaderoFalso = () => {
+        const caso = grDe(GR_VERDADERO_FALSO);
+        return grPregunta(
+          [{ t: "¿Verdadero o falso? " }].concat(caso.enunciado),
+          grOpcion({ t: caso.cierto ? "Verdadero" : "Falso" }),
+          [grOpcion({ t: caso.cierto ? "Falso" : "Verdadero" })],
+          caso.porque
+        );
+      };
+
+      const grGenRacionalONo = () => {
+        const caso = grDe(GR_RACIONAL_O_NO);
+        return grPregunta(
+          [{ t: "El número " }, { m: caso.tex }, { t: ", ¿es racional o irracional?" }],
+          grOpcion({ t: caso.esRacional ? "Racional" : "Irracional" }),
+          [grOpcion({ t: caso.esRacional ? "Irracional" : "Racional" })],
+          caso.porque
+        );
+      };
+
+      const GR_TIPOS_DECIMAL = ["Exacto", "Periódico puro", "Periódico mixto"];
+
+      const GR_DENOMINADORES = {
+        exacto: [2, 4, 5, 8, 10, 16, 20, 25, 40, 50],
+        puro: [3, 7, 9, 11, 13],
+        mixto: [6, 12, 14, 15, 18, 22, 24, 45, 55]
+      };
+
+      const GR_TRAMPAS_DECIMAL = [
+        { num: 18, den: 24, tipo: 0, reducida: "\\frac{18}{24}=\\frac34" },
+        { num: 15, den: 12, tipo: 0, reducida: "\\frac{15}{12}=\\frac54" },
+        { num: 14, den: 21, tipo: 1, reducida: "\\frac{14}{21}=\\frac23" },
+        { num: 22, den: 33, tipo: 1, reducida: "\\frac{22}{33}=\\frac23" },
+        { num: 30, den: 12, tipo: 0, reducida: "\\frac{30}{12}=\\frac52" },
+        { num: 24, den: 42, tipo: 1, reducida: "\\frac{24}{42}=\\frac47" },
+        { num: 30, den: 36, tipo: 2, reducida: "\\frac{30}{36}=\\frac56" },
+        { num: 21, den: 90, tipo: 2, reducida: "\\frac{21}{90}=\\frac{7}{30}" }
+      ];
+
+      const grFactorizacionTex = (n) => {
+        const factores = [];
+        let resto = n;
+        [2, 3, 5, 7, 11, 13].forEach((primo) => {
+          let veces = 0;
+          while (resto % primo === 0) {
+            resto /= primo;
+            veces += 1;
+          }
+          if (veces > 0) {
+            factores.push(veces === 1 ? String(primo) : primo + "^{" + veces + "}");
+          }
+        });
+        return factores.join("\\cdot");
+      };
+
+      const grGenTipoDecimal = () => {
+        if (Math.random() < 0.3) {
+          const trampa = grDe(GR_TRAMPAS_DECIMAL);
+          return grPregunta(
+            [{ t: "Sin dividir: ¿qué tipo de decimal produce " }, { m: grFrac(trampa.num, trampa.den) }, { t: "?" }],
+            grOpcion({ t: GR_TIPOS_DECIMAL[trampa.tipo] }),
+            GR_TIPOS_DECIMAL.filter((tipo, i) => i !== trampa.tipo).map((tipo) => grOpcion({ t: tipo })),
+            [{ t: "Primero hay que simplificar: " }, { m: trampa.reducida }, { t: ". El tipo se decide con el denominador de la fracción irreducible." }]
+          );
+        }
+        const tipo = grEntero(0, 2);
+        const den = grDe(GR_DENOMINADORES[["exacto", "puro", "mixto"][tipo]]);
+        let num = grEntero(2, den > 20 ? den - 1 : 19);
+        let intentos = 0;
+        while ((grMcd(num, den) !== 1 || num % den === 0) && intentos < 30) {
+          num = grEntero(2, den > 20 ? den - 1 : 19);
+          intentos += 1;
+        }
+        if (grMcd(num, den) !== 1) {
+          num = 1;
+        }
+        const razones = [
+          "solo tiene los factores 2 o 5: decimal exacto",
+          "no tiene ni el factor 2 ni el 5: periódico puro",
+          "mezcla el factor 2 o el 5 con otros primos: periódico mixto"
+        ];
+        const factorizacion = grFactorizacionTex(den);
+        return grPregunta(
+          [{ t: "Sin dividir: ¿qué tipo de decimal produce " }, { m: grFrac(num, den) }, { t: "?" }],
+          grOpcion({ t: GR_TIPOS_DECIMAL[tipo] }),
+          GR_TIPOS_DECIMAL.filter((etiqueta, i) => i !== tipo).map((etiqueta) => grOpcion({ t: etiqueta })),
+          [
+            { t: "La fracción es irreducible y " },
+            { m: factorizacion === String(den) ? String(den) : den + "=" + factorizacion },
+            { t: " " + razones[tipo] + "." }
+          ]
+        );
+      };
+
+      const grGenGeneratriz = () => {
+        const variante = grEntero(0, 2);
+        if (variante === 0) {
+          let periodo = grEntero(12, 98);
+          while (periodo % 11 === 0 || periodo % 10 === 0) {
+            periodo = grEntero(12, 98);
+          }
+          const correcta = grFracSimplificada(periodo, 99);
+          const primera = Math.floor(periodo / 10);
+          return grPregunta(
+            [{ t: "¿Cuál es la fracción generatriz de " }, { m: "0{,}\\overline{" + periodo + "}" }, { t: "?" }],
+            grOpcion({ m: correcta.tex }, periodo / 99),
+            [
+              grOpcion({ m: grFrac(periodo, 100) }, periodo / 100),
+              grOpcion({ m: grFrac(periodo, 90) }, periodo / 90),
+              grOpcion({ m: grFrac(periodo - primera, 90) }, (periodo - primera) / 90)
+            ],
+            [{ t: "Periódico puro: el periodo entre tantos 9 como cifras tiene, " }, { m: grCadenaSimplificacion(grFrac(periodo, 99), correcta.tex) }, { t: "." }]
+          );
+        }
+        if (variante === 1) {
+          const ante = grEntero(1, 9);
+          let periodo = grEntero(1, 9);
+          while (periodo === ante) {
+            periodo = grEntero(1, 9);
+          }
+          const numerador = 9 * ante + periodo;
+          const correcta = grFracSimplificada(numerador, 90);
+          const completo = 10 * ante + periodo;
+          return grPregunta(
+            [{ t: "¿Cuál es la fracción generatriz de " }, { m: "0{," + "}" + ante + "\\overline{" + periodo + "}" }, { t: "?" }],
+            grOpcion({ m: correcta.tex }, numerador / 90),
+            [
+              grOpcion({ m: grFrac(completo, 90) }, completo / 90),
+              grOpcion({ m: grFrac(completo, 99) }, completo / 99),
+              grOpcion({ m: grFrac(completo, 100) }, completo / 100)
+            ],
+            [{ t: "Periódico mixto: " }, { m: grFrac(completo + "-" + ante, "90") + "=" + grCadenaSimplificacion(grFrac(numerador, 90), correcta.tex) }, { t: " (un 9 por la cifra del periodo y un 0 por la del anteperiodo)." }]
+          );
+        }
+        const entera = grEntero(1, 9);
+        const decimas = grEntero(0, 9);
+        const centesimas = grEntero(1, 9);
+        const numerador = 100 * entera + 10 * decimas + centesimas;
+        const correcta = grFracSimplificada(numerador, 100);
+        const decimalTex = entera + "{,}" + decimas + centesimas;
+        return grPregunta(
+          [{ t: "¿Cuál es la fracción generatriz de " }, { m: decimalTex }, { t: "?" }],
+          grOpcion({ m: correcta.tex }, numerador / 100),
+          [
+            grOpcion({ m: grFrac(numerador, 90) }, numerador / 90),
+            grOpcion({ m: grFrac(numerador, 99) }, numerador / 99),
+            grOpcion({ m: grFrac(numerador, 1000) }, numerador / 1000)
+          ],
+          [{ t: "Decimal exacto: se quita la coma y se divide entre la unidad seguida de tantos ceros como decimales, " }, { m: grCadenaSimplificacion(grFrac(numerador, 100), correcta.tex) }, { t: "." }]
+        );
+      };
+
+      // Los distractores de cada caso valen números distintos entre sí: dos
+      // escrituras del mismo número dejarían descartarlos a la vez.
+      const GR_NUEVES = [
+        { tex: "0{,}\\overline{9}", valor: "1", falsas: ["0{,}9", "\\text{no existe}", "0{,}99"], cuenta: "\\frac{9}{9}=1" },
+        { tex: "2{,}\\overline{9}", valor: "3", falsas: ["2{,}9", "2{,}99", "2{,}\\overline{8}"], cuenta: "2+\\frac99=3" },
+        { tex: "1{,}4\\overline{9}", valor: "1{,}5", falsas: ["1{,}49", "1{,}4", "1{,}59"], cuenta: "\\frac{149-14}{90}=\\frac{135}{90}=\\frac32" },
+        { tex: "0{,}4\\overline{9}", valor: "0{,}5", falsas: ["0{,}49", "0{,}4", "0{,}59"], cuenta: "\\frac{49-4}{90}=\\frac{45}{90}=\\frac12" }
+      ];
+
+      const grGenNueves = () => {
+        const caso = grDe(GR_NUEVES);
+        return grPregunta(
+          [{ t: "¿Qué número es exactamente " }, { m: caso.tex }, { t: "?" }],
+          grOpcion({ m: caso.valor }),
+          caso.falsas.map((tex) => grOpcion({ m: tex })),
+          [{ t: "Su fracción generatriz lo delata: " }, { m: caso.cuenta }, { t: ". Un periodo de nueves «cierra» la cifra anterior." }]
+        );
+      };
+
+      // ---- Guardián 3: el Centinela (orden, intervalos, valor absoluto) ----
+
+      const grIntervaloTexto = (inicio, fin, cerradoIzquierda, cerradoDerecha) =>
+        notacionIntervalo({ inicio, fin, cerradoIzquierda, cerradoDerecha });
+
+      const grCompletarOpciones = (correcta, candidatas) => {
+        const vistas = { [correcta.clave]: true };
+        const resultado = [];
+        candidatas.forEach((opcion) => {
+          if (!vistas[opcion.clave]) {
+            vistas[opcion.clave] = true;
+            resultado.push(opcion);
+          }
+        });
+        return resultado;
+      };
+
+      const grGenValorAbsolutoAIntervalo = () => {
+        const centro = grEntero(-5, 5);
+        const radio = Math.random() < 0.35 ? grDe([0.5, 1.5, 2.5]) : grEntero(1, 4);
+        const estricta = Math.random() < 0.5;
+        // Con centro 0 la desigualdad se escribe |x|, no |x-0|.
+        const desigualdadTex =
+          (centro === 0
+            ? "|x|"
+            : "|x-" + (centro < 0 ? "(" + grComaTex(centro) + ")" : grComaTex(centro)) + "|") +
+          (estricta ? "<" : "\\leq ") + grComaTex(radio);
+        const correcta = grOpcion({ t: grIntervaloTexto(centro - radio, centro + radio, !estricta, !estricta) });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ t: grIntervaloTexto(centro - radio, centro + radio, estricta, estricta) }),
+          // Con centro 0 el intervalo simétrico coincide con el correcto y se
+          // descarta; la cuarta candidata evita quedarse sin distractores.
+          grOpcion({ t: grIntervaloTexto(-centro - radio, -centro + radio, !estricta, !estricta) }),
+          grOpcion({ t: grIntervaloTexto(centro - 2 * radio, centro + 2 * radio, !estricta, !estricta) }),
+          grOpcion({ t: grIntervaloTexto(centro, centro + radio, !estricta, !estricta) })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "¿Qué conjunto de la recta cumple " }, { m: desigualdadTex }, { t: "?" }],
+          correcta,
+          candidatas,
+          [
+            { m: "|x-a|" + (estricta ? "<" : "\\leq ") + "r" },
+            { t: " son los números a distancia de " + grComaTexto(centro) + " menor " + (estricta ? "que" : "o igual que") + " " + grComaTexto(radio) + ": el intervalo " + (estricta ? "abierto" : "cerrado") + " de centro " + grComaTexto(centro) + " y radio " + grComaTexto(radio) + "." }
+          ]
+        );
+      };
+
+      const grGenIntervaloAValorAbsoluto = () => {
+        const centro = grEntero(-4, 4);
+        const radio = grEntero(1, 4);
+        // Con centro 0 la desigualdad se escribe |x|, no |x-0|.
+        const modulo =
+          centro === 0
+            ? "|x|"
+            : "|x-" + (centro < 0 ? "(" + centro + ")" : String(centro)) + "|";
+        const correcta = grOpcion({ m: modulo + "<" + radio });
+        // Los radios de los dos distractores con centro y radio permutados se
+        // corrigen cuando coincidirían con la desigualdad correcta: |x-r|<|c|
+        // la repite si c = r, y |x+r|<|c| la repite si c = -r.
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ m: modulo + ">" + radio }),
+          grOpcion({ m: "|x-" + radio + "|<" + (centro === radio || centro === 0 ? radio + 1 : Math.abs(centro)) }),
+          grOpcion({ m: modulo + "\\leq " + radio }),
+          grOpcion({ m: "|x+" + radio + "|<" + (centro === -radio || centro === 0 ? radio + 1 : Math.abs(centro)) })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "El intervalo abierto " }, { t: grIntervaloTexto(centro - radio, centro + radio, false, false) }, { t: " se describe con la desigualdad…" }],
+          correcta,
+          candidatas,
+          [{ t: "Centro " + centro + " y radio " + radio + ": distancia a " + centro + " menor que " + radio + ", es decir, " }, { m: modulo + "<" + radio }, { t: "." }]
+        );
+      };
+
+      const grGenDistancia = () => {
+        const a = grEntero(-9, 9);
+        let b = grEntero(-9, 9);
+        while (b === a) {
+          b = grEntero(-9, 9);
+        }
+        const distancia = Math.abs(b - a);
+        const correcta = grOpcion({ t: String(distancia) }, distancia);
+        // Errores típicos: sumar en vez de restar y sumar los valores
+        // absolutos. Ninguna opción es negativa, porque una distancia
+        // negativa se descarta sin pensar; varias coinciden entre sí por las
+        // identidades del valor absoluto, así que hay reservas para que
+        // siempre queden tres distractores distintos.
+        const vistos = {};
+        vistos[distancia] = true;
+        const candidatas = [];
+        [
+          Math.abs(a + b),
+          Math.abs(a) + Math.abs(b),
+          Math.abs(Math.abs(a) - Math.abs(b)),
+          distancia + 1,
+          distancia > 1 ? distancia - 1 : distancia + 2,
+          distancia + 3,
+          distancia + 4
+        ].forEach((valor) => {
+          if (!vistos[valor] && candidatas.length < 3) {
+            vistos[valor] = true;
+            candidatas.push(grOpcion({ t: String(valor) }, valor));
+          }
+        });
+        return grPregunta(
+          [{ t: "¿Cuál es la distancia entre " + grComaTexto(a) + " y " + grComaTexto(b) + " en la recta real?" }],
+          correcta,
+          candidatas,
+          [{ m: "d(" + a + "," + b + ")=|" + b + "-(" + a + ")|=" + distancia }, { t: ". La distancia es el valor absoluto de la diferencia." }]
+        );
+      };
+
+      const grGenOperacionIntervalos = () => {
+        // Un tercio de las veces los intervalos son disjuntos, para que la
+        // intersección vacía y la unión en dos trozos también aparezcan.
+        const disjuntos = Math.random() < 0.34;
+        const a1 = grEntero(-6, 0);
+        const a2 = a1 + grEntero(1, 3);
+        const b1 = a2 + grEntero(1, 3);
+        const b2 = b1 + grEntero(1, 3);
+        const A = {
+          inicio: a1,
+          fin: disjuntos ? a2 : b1,
+          cerradoIzquierda: Math.random() < 0.5,
+          cerradoDerecha: Math.random() < 0.5
+        };
+        const B = {
+          inicio: disjuntos ? b1 : a2,
+          fin: b2,
+          cerradoIzquierda: Math.random() < 0.5,
+          cerradoDerecha: Math.random() < 0.5
+        };
+        const esInterseccion = Math.random() < 0.5;
+        const resultado = esInterseccion
+          ? interseccionIntervalos(A, B)
+          : unionIntervalos(A, B);
+        const alternativo = esInterseccion
+          ? unionIntervalos(A, B)
+          : interseccionIntervalos(A, B);
+        const correcta = grOpcion({ t: resultado });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ t: alternativo }),
+          grOpcion({ t: grIntervaloTexto(A.inicio, B.fin, !A.cerradoIzquierda, !B.cerradoDerecha) }),
+          grOpcion({ t: grIntervaloTexto(B.inicio, A.fin, !B.cerradoIzquierda, !A.cerradoDerecha) }),
+          grOpcion({ t: grIntervaloTexto(A.inicio, B.inicio, A.cerradoIzquierda, B.cerradoIzquierda) }),
+          grOpcion({ t: "∅" }),
+          grOpcion({ t: grIntervaloTexto(A.inicio, B.fin, A.cerradoIzquierda, B.cerradoDerecha) })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        const nombreA = grIntervaloTexto(A.inicio, A.fin, A.cerradoIzquierda, A.cerradoDerecha);
+        const nombreB = grIntervaloTexto(B.inicio, B.fin, B.cerradoIzquierda, B.cerradoDerecha);
+        return grPregunta(
+          [{ t: "Si A = " + nombreA + " y B = " + nombreB + ", ¿cuál es A " + (esInterseccion ? "∩" : "∪") + " B?" }],
+          correcta,
+          candidatas,
+          [{ t: esInterseccion
+              ? disjuntos
+                ? "Los dos intervalos no tienen ningún punto en común, así que la intersección es el conjunto vacío."
+                : "La intersección son los puntos comunes: de " + B.inicio + " a " + A.fin + ", y cada extremo se incluye solo si está en los dos intervalos."
+              : disjuntos
+                ? "Los intervalos están separados, de modo que la unión no se puede escribir como un solo intervalo: se dejan los dos trozos."
+                : "La unión reúne los dos intervalos: como se solapan, va del extremo inferior de A al superior de B." }]
+        );
+      };
+
+      const GR_ABSOLUTO_LEJOS = [
+        { umbral: 2, estricta: false }, { umbral: 3, estricta: false },
+        { umbral: 4, estricta: true }, { umbral: 5, estricta: true }
+      ];
+
+      const grGenAbsolutoLejos = () => {
+        const caso = grDe(GR_ABSOLUTO_LEJOS);
+        const u = caso.umbral;
+        const cerrado = !caso.estricta;
+        // El guion es el mismo que produce formatearExtremo en el resto de
+        // intervalos del juego, para que el signo no cambie de glifo.
+        const correctaTexto =
+          (cerrado ? "(-∞, -" + u + "] ∪ [" + u + ", +∞)" : "(-∞, -" + u + ") ∪ (" + u + ", +∞)");
+        const correcta = grOpcion({ t: correctaTexto });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ t: cerrado ? "[-" + u + ", " + u + "]" : "(-" + u + ", " + u + ")" }),
+          grOpcion({ t: cerrado ? "(-∞, -" + u + ") ∪ (" + u + ", +∞)" : "(-∞, -" + u + "] ∪ [" + u + ", +∞)" }),
+          grOpcion({ t: cerrado ? "[" + u + ", +∞)" : "(" + u + ", +∞)" })
+        ]);
+        return grPregunta(
+          [{ t: "¿Qué números reales cumplen " }, { m: "|x|" + (caso.estricta ? ">" : "\\geq ") + u }, { t: "?" }],
+          correcta,
+          candidatas,
+          [{ t: "Son los números a distancia del origen " + (caso.estricta ? "mayor que" : "mayor o igual que") + " " + u + ": las dos semirrectas, a izquierda y derecha." }]
+        );
+      };
+
+      const grGenEntorno = () => {
+        const centro = grEntero(-4, 5);
+        const radio = grDe([0.5, 1.5, 0.25, 2.5, 1, 2]);
+        const correcta = grOpcion({ t: grIntervaloTexto(centro - radio, centro + radio, false, false) });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ t: grIntervaloTexto(centro - radio, centro + radio, true, true) }),
+          grOpcion({ t: grIntervaloTexto(centro, centro + radio, false, false) }),
+          grOpcion({ t: grIntervaloTexto(centro - 2 * radio, centro + 2 * radio, false, false) })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "¿Cuál es el entorno de centro " + grComaTexto(centro) + " y radio " + grComaTexto(radio) + "?" }],
+          correcta,
+          candidatas,
+          [{ m: "E(" + grComaTex(centro) + ";\\ " + grComaTex(radio) + ")" }, { t: " es el intervalo abierto que va de " + grComaTexto(centro - radio) + " a " + grComaTexto(centro + radio) + ": los extremos no se incluyen." }]
+        );
+      };
+
+      // ---- Guardián 4: la Potencia (potencias, notación científica, errores) ----
+
+      const grGenExponenteNegativo = () => {
+        if (Math.random() < 0.4) {
+          const pares = [[2, 3], [3, 4], [2, 5], [3, 5]];
+          const par = grDe(pares);
+          const n = grEntero(1, 2);
+          const numerador = Math.pow(par[1], n);
+          const denominador = Math.pow(par[0], n);
+          const correcta = grOpcion({ m: grFrac(numerador, denominador) }, numerador / denominador);
+          const candidatas = [
+            grOpcion({ m: grFrac(denominador, numerador) }, denominador / numerador),
+            grOpcion({ m: "-" + grFrac(denominador, numerador) }, -denominador / numerador),
+            grOpcion({ m: "-" + grFrac(numerador, denominador) }, -numerador / denominador)
+          ];
+          return grPregunta(
+            [{ t: "Calcula " }, { m: "\\left(" + grFrac(par[0], par[1]) + "\\right)^{-" + n + "}" }],
+            correcta,
+            candidatas,
+            [{ t: "El exponente negativo invierte la fracción: " }, { m: "\\left(" + grFrac(par[0], par[1]) + "\\right)^{-" + n + "}=\\left(" + grFrac(par[1], par[0]) + "\\right)^{" + n + "}=" + grFrac(numerador, denominador) }, { t: "." }]
+          );
+        }
+        const base = grDe([2, 3, 4, 5, 10]);
+        let n = grEntero(2, 3);
+        // Con base 2 y exponente 2, el distractor 1/(base·n) valdría 1/4 igual
+        // que la respuesta correcta y la pregunta se quedaría sin opciones.
+        while (base === 2 && n === 2) {
+          n = grEntero(2, 3);
+        }
+        const potencia = Math.pow(base, n);
+        const correcta = grOpcion({ m: grFrac(1, potencia) }, 1 / potencia);
+        const candidatas = [
+          grOpcion({ m: "-" + potencia }, -potencia),
+          grOpcion({ m: "-" + grFrac(1, potencia) }, -1 / potencia),
+          grOpcion({ m: grFrac(1, base * n) }, 1 / (base * n))
+        ].filter((opcion) => Math.abs(opcion.valor - 1 / potencia) > 1e-9);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "Calcula " }, { m: base + "^{-" + n + "}" }],
+          correcta,
+          candidatas,
+          [{ m: base + "^{-" + n + "}=" + grFrac(1, base + "^{" + n + "}") + "=" + grFrac(1, potencia) }, { t: ". Exponente negativo: el inverso de la potencia, nunca un número negativo." }]
+        );
+      };
+
+      const grGenSignoPotencia = () => {
+        const base = grDe([2, 3, 5]);
+        let n = grEntero(2, 4);
+        // 2·2 y 2² coinciden, así que ese par dejaría la pregunta sin
+        // distractores distintos.
+        while (base === 2 && n === 2) {
+          n = grEntero(2, 4);
+        }
+        const conParentesis = Math.random() < 0.5;
+        const potencia = Math.pow(base, n);
+        const valor = conParentesis ? (n % 2 === 0 ? potencia : -potencia) : -potencia;
+        const tex = conParentesis ? "(-" + base + ")^{" + n + "}" : "-" + base + "^{" + n + "}";
+        const correcta = grOpcion({ m: String(valor) }, valor);
+        const candidatas = [
+          grOpcion({ m: String(-valor) }, -valor),
+          grOpcion({ m: String(-base * n) }, -base * n),
+          grOpcion({ m: String(base * n) }, base * n)
+        ].filter((opcion) => opcion.valor !== valor);
+        const limpias = grCompletarOpciones(correcta, candidatas);
+        if (limpias.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "Calcula " }, { m: tex }],
+          correcta,
+          limpias,
+          [{ t: conParentesis
+              ? "El paréntesis incluye el signo en la base: con exponente " + (n % 2 === 0 ? "par el resultado es positivo" : "impar el resultado es negativo") + "."
+              : "Sin paréntesis, el exponente solo afecta a la base " + base + ": primero la potencia y después el signo menos." }]
+        );
+      };
+
+      const grGenProductoPotencias = () => {
+        if (Math.random() < 0.5) {
+          const m = grEntero(2, 6);
+          let resultadoExp = grEntero(1, 4);
+          // Con m igual al exponente final el segundo factor sería b^0 y el
+          // distractor de la resta repetiría la respuesta correcta.
+          while (resultadoExp === m) {
+            resultadoExp = grEntero(1, 4);
+          }
+          const n = resultadoExp - m;
+          const base = grDe([2, 3, 5, 7]);
+          const correcta = grOpcion({ m: base + "^{" + resultadoExp + "}" });
+          // Con m = 2 y exponente final 4, el producto de exponentes vale
+          // también 4 y ese distractor se descarta: de ahí la cuarta opción.
+          const candidatas = grCompletarOpciones(correcta, [
+            grOpcion({ m: base + "^{" + m * n + "}" }),
+            grOpcion({ m: base + "^{" + (m - n) + "}" }),
+            grOpcion({ m: (base * base) + "^{" + resultadoExp + "}" }),
+            grOpcion({ m: base + "^{" + -resultadoExp + "}" })
+          ]);
+          if (candidatas.length < 3) {
+            return null;
+          }
+          return grPregunta(
+            [{ t: "Escribe como una sola potencia: " }, { m: base + "^{" + m + "}\\cdot " + base + "^{" + n + "}" }],
+            correcta,
+            candidatas,
+            [{ t: "Misma base: se suman los exponentes, " }, { m: m + "+(" + n + ")=" + resultadoExp }, { t: "." }]
+          );
+        }
+        let m = grEntero(2, 4);
+        let n = grEntero(2, 4);
+        while (m === 2 && n === 2) {
+          n = grEntero(2, 4);
+        }
+        const base = grDe([2, 3, 5, "x"]);
+        const correcta = grOpcion({ m: base + "^{" + m * n + "}" });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ m: base + "^{" + (m + n) + "}" }),
+          grOpcion({ m: base + "^{" + Math.pow(m, n) + "}" }),
+          grOpcion({ m: base + "^{" + (m - n) + "}" })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "Escribe como una sola potencia: " }, { m: "\\left(" + base + "^{" + m + "}\\right)^{" + n + "}" }],
+          correcta,
+          candidatas,
+          [{ t: "Potencia de una potencia: se multiplican los exponentes, " }, { m: m + "\\cdot " + n + "=" + m * n }, { t: "." }]
+        );
+      };
+
+      const grAgrupaMiles = (cadena) => {
+        let resultado = "";
+        for (let i = 0; i < cadena.length; i += 1) {
+          const restantes = cadena.length - i;
+          if (i > 0 && restantes % 3 === 0 && cadena.length > 4) {
+            resultado += " ";
+          }
+          resultado += cadena[i];
+        }
+        return resultado;
+      };
+
+      const grMantisaTex = (mantisa) =>
+        mantisa.length === 1 ? mantisa : mantisa[0] + "{,}" + mantisa.slice(1);
+
+      const grGenNotacionCientifica = () => {
+        const cifras = grEntero(2, 3);
+        let mantisa = String(grEntero(1, 9));
+        for (let i = 1; i < cifras; i += 1) {
+          mantisa += String(grEntero(i === cifras - 1 ? 1 : 0, 9));
+        }
+        const exponente = grDe([-6, -5, -4, -3, 3, 4, 5, 6, 7]);
+        let plano;
+        if (exponente > 0) {
+          plano = grAgrupaMiles(mantisa + "0".repeat(exponente - (mantisa.length - 1)));
+        } else {
+          plano = "0," + "0".repeat(-exponente - 1) + mantisa;
+        }
+        const texCon = (deciExp) => grMantisaTex(mantisa) + "\\cdot10^{" + deciExp + "}";
+        const correcta = grOpcion({ m: texCon(exponente) });
+        // La mantisa sin normalizar: la coma una posición más a la derecha.
+        const desplazada =
+          mantisa.slice(0, 2) +
+          (mantisa.length > 2 ? "{,}" + mantisa.slice(2) : "") +
+          "\\cdot10^{" + (exponente - 1) + "}";
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ m: texCon(exponente + 1) }),
+          grOpcion({ m: texCon(exponente - 1) }),
+          grOpcion({ m: desplazada })
+        ]);
+        return grPregunta(
+          [{ t: "Escribe en notación científica, con una sola cifra no nula antes de la coma: " + plano }],
+          correcta,
+          candidatas,
+          [{ t: "La mantisa lleva una sola cifra no nula antes de la coma y el exponente cuenta los lugares que se desplaza: " }, { m: texCon(exponente) }, { t: "." }]
+        );
+      };
+
+      const grGenOperacionCientifica = () => {
+        const a = grEntero(2, 8);
+        let b = grEntero(2, 8);
+        while (a * b < 10) {
+          b = grEntero(2, 8);
+        }
+        const m = grEntero(2, 5);
+        const n = grDe([2, 3, -2, -3]);
+        const producto = a * b;
+        const expFinal = m + n + 1;
+        const mantisaFinal =
+          producto % 10 === 0 ? String(producto / 10) : grMantisaTex(String(producto));
+        const correcta = grOpcion({ m: mantisaFinal + "\\cdot10^{" + expFinal + "}" });
+        // Con m = n = 2 los exponentes m+n y m·n coinciden y dos distractores
+        // se descartan; el último (mantisa sin normalizar) los repone.
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ m: producto + "\\cdot10^{" + (m + n) + "}" }),
+          grOpcion({ m: mantisaFinal + "\\cdot10^{" + (m + n) + "}" }),
+          grOpcion({ m: mantisaFinal + "\\cdot10^{" + m * n + "}" }),
+          grOpcion({ m: producto + "\\cdot10^{" + m * n + "}" }),
+          grOpcion({ m: producto + "\\cdot10^{" + expFinal + "}" })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [
+            { t: "Calcula y escribe el resultado en notación científica, con la mantisa entre 1 y 10: " },
+            { m: "\\left(" + a + "\\cdot10^{" + m + "}\\right)\\cdot\\left(" + b + "\\cdot10^{" + n + "}\\right)" }
+          ],
+          correcta,
+          candidatas,
+          [
+            { t: "Se multiplican las mantisas y se suman los exponentes: " },
+            { m: a + "\\cdot " + b + "=" + producto },
+            { t: " y " },
+            { m: m + "+(" + n + ")=" + (m + n) },
+            { t: ". La mantisa " + producto + " tiene dos cifras enteras, así que se corre la coma un lugar y el exponente sube una unidad: " },
+            { m: mantisaFinal + "\\cdot10^{" + expFinal + "}" },
+            { t: "." }
+          ]
+        );
+      };
+
+      const GR_ERRORES = [
+        { exacto: "12,5", aprox: "12,4", absoluto: "0,1", relativo: "0,008" },
+        { exacto: "2,5", aprox: "2,48", absoluto: "0,02", relativo: "0,008" },
+        { exacto: "40", aprox: "41", absoluto: "1", relativo: "0,025" },
+        { exacto: "250", aprox: "245", absoluto: "5", relativo: "0,02" },
+        { exacto: "0,8", aprox: "0,84", absoluto: "0,04", relativo: "0,05" }
+      ];
+
+      const grGenError = () => {
+        const caso = grDe(GR_ERRORES);
+        const pideAbsoluto = Math.random() < 0.5;
+        const correctaTexto = pideAbsoluto ? caso.absoluto : caso.relativo;
+        const correcta = grOpcion({ t: correctaTexto });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ t: pideAbsoluto ? caso.relativo : caso.absoluto }),
+          grOpcion({ t: caso.aprox }),
+          grOpcion({ t: pideAbsoluto ? "-" + caso.absoluto : caso.relativo.replace("0,0", "0,") }),
+          grOpcion({ t: caso.relativo === "0,05" ? "0,005" : "0,05" })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "El valor exacto es " + caso.exacto + " y se aproxima por " + caso.aprox + ". ¿Cuál es el error " + (pideAbsoluto ? "absoluto" : "relativo") + "?" }],
+          correcta,
+          candidatas,
+          [
+            { m: "E_a=|" + grComaTex(caso.exacto.replace(",", ".")) + "-" + grComaTex(caso.aprox.replace(",", ".")) + "|=" + grComaTex(caso.absoluto.replace(",", ".")) },
+            { t: pideAbsoluto ? "." : ", y el relativo lo compara con el exacto: " },
+            pideAbsoluto ? { t: "" } : { m: "E_r=" + grFrac(grComaTex(caso.absoluto.replace(",", ".")), grComaTex(caso.exacto.replace(",", "."))) + "=" + grComaTex(caso.relativo.replace(",", ".")) }
+          ]
+        );
+      };
+
+      const GR_CALIDAD_MEDIDAS = [
+        { a: "5 m con error de 1 cm", ra: "0,002", b: "100 m con error de 50 cm", rb: "0,005", gana: 0 },
+        { a: "2 kg con error de 40 g", ra: "0,02", b: "60 kg con error de 600 g", rb: "0,01", gana: 1 }
+      ];
+
+      const grGenCalidadMedida = () => {
+        const caso = grDe(GR_CALIDAD_MEDIDAS);
+        return grPregunta(
+          [{ t: "Medida A: " + caso.a + ". Medida B: " + caso.b + ". ¿Cuál es de más calidad?" }],
+          grOpcion({ t: caso.gana === 0 ? "La medida A" : "La medida B" }),
+          [grOpcion({ t: caso.gana === 0 ? "La medida B" : "La medida A" }), grOpcion({ t: "Las dos igual" })],
+          [{ t: "Manda el error relativo: A tiene " + caso.ra + " y B tiene " + caso.rb + ". Es mejor la de menor error relativo, no la de menor error absoluto." }]
+        );
+      };
+
+      const grGenRedondeo = () => {
+        const entera = grEntero(1, 9);
+        const d1 = grEntero(0, 9);
+        // Con d2 = 0 el truncamiento «3,40» y el distractor de las décimas
+        // «3,4» serían el mismo número, así que la centésima nunca es cero.
+        const d2 = grEntero(1, 8);
+        // La milésima recorre las dos posibilidades: si siempre fuese 5 o
+        // más, redondear se reduciría a «sumar uno» sin mirar nada. El cero
+        // queda fuera porque «5,580» y «5,58» son el mismo número.
+        const d3 = grEntero(1, 9);
+        const sube = d3 >= 5;
+        const numero = entera + "," + d1 + d2 + d3;
+        const truncamiento = entera + "," + d1 + d2;
+        const subida = entera + "," + d1 + (d2 + 1);
+        const redondeo = sube ? subida : truncamiento;
+        const pideRedondeo = Math.random() < 0.5;
+        const correcta = grOpcion({ t: pideRedondeo ? redondeo : truncamiento });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ t: pideRedondeo ? truncamiento : redondeo }),
+          grOpcion({ t: subida }),
+          grOpcion({ t: entera + "," + d1 }),
+          grOpcion({ t: numero }),
+          grOpcion({ t: String(entera) })
+        ]);
+        return grPregunta(
+          [{ t: (pideRedondeo ? "Redondea " : "Trunca ") + numero + " a las centésimas." }],
+          correcta,
+          candidatas,
+          [{ t: pideRedondeo
+              ? sube
+                ? "La cifra siguiente es " + d3 + ", que llega a 5, así que la centésima sube: " + redondeo + "."
+                : "La cifra siguiente es " + d3 + ", que no llega a 5, así que la centésima se queda igual: " + redondeo + "."
+              : "Truncar es cortar sin mirar lo que viene detrás: queda " + truncamiento +
+                (sube
+                  ? ". Al redondear sí saldría " + subida + ", porque la milésima es " + d3 + "."
+                  : ". Aquí redondear da lo mismo, porque la milésima es " + d3 + " y no llega a 5.") }]
+        );
+      };
+
+      // ---- Guardián 5: el Radical ----
+
+      const GR_SIMPLIFICAR_RAIZ = [
+        { n: 8, k: 2, m: 2 }, { n: 12, k: 2, m: 3 }, { n: 18, k: 3, m: 2 },
+        { n: 20, k: 2, m: 5 }, { n: 32, k: 4, m: 2 }, { n: 45, k: 3, m: 5 },
+        { n: 48, k: 4, m: 3 }, { n: 50, k: 5, m: 2 }, { n: 72, k: 6, m: 2 },
+        { n: 75, k: 5, m: 3 }, { n: 98, k: 7, m: 2 }
+      ];
+
+      const GR_SIMPLIFICAR_CUBICA = [
+        { n: 16, k: 2, m: 2 }, { n: 24, k: 2, m: 3 }, { n: 54, k: 3, m: 2 }, { n: 250, k: 5, m: 2 }
+      ];
+
+      const grGenSimplificarRadical = () => {
+        const esCubica = Math.random() < 0.3;
+        const caso = esCubica ? grDe(GR_SIMPLIFICAR_CUBICA) : grDe(GR_SIMPLIFICAR_RAIZ);
+        const raiz = esCubica ? "\\sqrt[3]{" : "\\sqrt{";
+        const correcta = grOpcion({ m: caso.k + raiz + caso.m + "}" });
+        const candidatas = grCompletarOpciones(correcta, [
+          // Intercambiar el factor extraído con el radicando es el error
+          // típico, pero con k igual a m ese distractor sería la respuesta
+          // correcta: en ese caso se ofrece el producto sin radical.
+          caso.k === caso.m
+            ? grOpcion({ m: String(caso.k * caso.m) })
+            : grOpcion({ m: caso.m + raiz + caso.k + "}" }),
+          grOpcion({ m: caso.k * caso.m + raiz + caso.m + "}" }),
+          grOpcion({ m: caso.k + 1 + raiz + caso.m + "}" })
+        ]);
+        if (candidatas.length < 3) {
+          return null;
+        }
+        const potencia = esCubica ? caso.k * caso.k * caso.k : caso.k * caso.k;
+        return grPregunta(
+          [{ t: "Extrae factores: " }, { m: raiz + caso.n + "}" }],
+          correcta,
+          candidatas,
+          [{ m: caso.n + "=" + potencia + "\\cdot " + caso.m }, { t: esCubica ? ", y el cubo perfecto sale fuera de la raíz cúbica." : ", y el cuadrado perfecto sale fuera de la raíz." }]
+        );
+      };
+
+      const grGenExponenteRacional = () => {
+        const base = grDe(["2", "3", "5", "7", "x"]);
+        const par = grDe([[1, 2], [1, 3], [2, 3], [3, 4], [2, 5], [3, 5]]);
+        const m = par[0];
+        const n = par[1];
+        const potenciaTex = (exponente) =>
+          exponente === 1 ? base : base + "^{" + exponente + "}";
+        const correcta = grOpcion({ m: grRadicalTex(n, potenciaTex(m)) });
+        // Con numerador 1 no hay exponente que intercambiar con el índice, así
+        // que esa rama usa distractores propios.
+        const candidatas = grCompletarOpciones(
+          correcta,
+          m === 1
+            ? [
+                grOpcion({ m: grRadicalTex(n + 1, base) }),
+                grOpcion({ m: grRadicalTex(n, potenciaTex(n)) }),
+                grOpcion({ m: n + "\\cdot " + base })
+              ]
+            : [
+                grOpcion({ m: grRadicalTex(m, potenciaTex(n)) }),
+                grOpcion({ m: grRadicalTex(m * n, base) }),
+                grOpcion({ m: m + "\\cdot " + grRadicalTex(n, base) })
+              ]
+        );
+        if (candidatas.length < 3) {
+          return null;
+        }
+        return grPregunta(
+          [{ t: "Escribe como radical: " }, { m: base + "^{" + grFrac(m, n) + "}" }],
+          correcta,
+          candidatas,
+          [{ m: "a^{m/n}=\\sqrt[n]{a^{m}}" }, { t: ": el denominador es el índice de la raíz y el numerador, el exponente del radicando." }]
+        );
+      };
+
+      const GR_SUMAS_RADICALES = [
+        { tex: "\\sqrt{8}+\\sqrt{18}", pasos: "2\\sqrt2+3\\sqrt2", resultado: "5\\sqrt2", falsa: "\\sqrt{26}" },
+        { tex: "\\sqrt{12}+\\sqrt{75}", pasos: "2\\sqrt3+5\\sqrt3", resultado: "7\\sqrt3", falsa: "\\sqrt{87}" },
+        { tex: "\\sqrt{50}-\\sqrt{18}", pasos: "5\\sqrt2-3\\sqrt2", resultado: "2\\sqrt2", falsa: "\\sqrt{32}" },
+        { tex: "\\sqrt{20}+\\sqrt{45}", pasos: "2\\sqrt5+3\\sqrt5", resultado: "5\\sqrt5", falsa: "\\sqrt{65}" },
+        { tex: "\\sqrt{27}-\\sqrt{12}", pasos: "3\\sqrt3-2\\sqrt3", resultado: "\\sqrt3", falsa: "\\sqrt{15}" },
+        { tex: "\\sqrt{32}+\\sqrt{50}", pasos: "4\\sqrt2+5\\sqrt2", resultado: "9\\sqrt2", falsa: "\\sqrt{82}" }
+      ];
+
+      const grGenSumaRadicales = () => {
+        if (Math.random() < 0.18) {
+          return grPregunta(
+            [{ t: "Calcula, si es posible: " }, { m: "\\sqrt{2}+\\sqrt{3}" }],
+            grOpcion({ t: "No puede reducirse más" }),
+            [grOpcion({ m: "\\sqrt{5}" }), grOpcion({ m: "\\sqrt{6}" }), grOpcion({ m: "2\\sqrt{5}" })],
+            [{ t: "No son radicales semejantes: la raíz de una suma no es la suma de las raíces, así que " }, { m: "\\sqrt2+\\sqrt3" }, { t: " se queda tal cual." }]
+          );
+        }
+        const caso = grDe(GR_SUMAS_RADICALES);
+        return grPregunta(
+          [{ t: "Calcula, si es posible: " }, { m: caso.tex }],
+          grOpcion({ m: caso.resultado }),
+          [
+            grOpcion({ m: caso.falsa }),
+            grOpcion({ t: "No puede reducirse más" }),
+            // Sumar mal los coeficientes. En «\sqrt3» el primer número que
+            // encuentra la expresión regular es el radicando, no un
+            // coeficiente, así que ese caso lleva su propio distractor.
+            caso.resultado === "\\sqrt3"
+              ? grOpcion({ m: "5\\sqrt3" })
+              : grOpcion({ m: caso.resultado.replace(/\d+/, (d) => String(Number(d) + 1)) })
+          ],
+          [{ t: "Se extraen factores y quedan radicales semejantes: " }, { m: caso.tex + "=" + caso.pasos + "=" + caso.resultado }, { t: "." }]
+        );
+      };
+
+      const GR_RACIONALIZAR = [
+        { tex: grFrac(1, "\\sqrt{2}"), resultado: "\\frac{\\sqrt{2}}{2}", falsas: ["\\sqrt{2}", "\\frac{1}{2}", "\\frac{\\sqrt{2}}{4}"], porque: [{ t: "Multiplicamos numerador y denominador por " }, { m: "\\sqrt2" }, { t: "." }] },
+        { tex: grFrac(3, "\\sqrt{3}"), resultado: "\\sqrt{3}", falsas: ["\\frac{\\sqrt{3}}{3}", "3\\sqrt{3}", "\\frac13"], porque: [{ m: "\\frac{3}{\\sqrt3}=\\frac{3\\sqrt3}{3}=\\sqrt3" }, { t: "." }] },
+        { tex: grFrac(6, "\\sqrt{2}"), resultado: "3\\sqrt{2}", falsas: ["\\frac{\\sqrt{2}}{3}", "6\\sqrt{2}", "2\\sqrt{3}"], porque: [{ m: "\\frac{6}{\\sqrt2}=\\frac{6\\sqrt2}{2}=3\\sqrt2" }, { t: "." }] },
+        { tex: grFrac(10, "\\sqrt{5}"), resultado: "2\\sqrt{5}", falsas: ["5\\sqrt{2}", "\\frac{\\sqrt{5}}{2}", "10\\sqrt{5}"], porque: [{ m: "\\frac{10}{\\sqrt5}=\\frac{10\\sqrt5}{5}=2\\sqrt5" }, { t: "." }] },
+        { tex: grFrac(1, "\\sqrt{3}+1"), resultado: "\\frac{\\sqrt{3}-1}{2}", falsas: ["\\frac{\\sqrt{3}+1}{2}", "\\sqrt{3}-1", "\\frac{1}{2}"], porque: [{ t: "Con el conjugado: " }, { m: "\\frac{\\sqrt3-1}{(\\sqrt3)^{2}-1^{2}}=\\frac{\\sqrt3-1}{2}" }, { t: "." }] },
+        { tex: grFrac(2, "\\sqrt{5}-1"), resultado: "\\frac{\\sqrt{5}+1}{2}", falsas: ["\\frac{\\sqrt{5}-1}{2}", "\\sqrt{5}+1", "\\frac{2}{4}"], porque: [{ t: "Con el conjugado: " }, { m: "\\frac{2(\\sqrt5+1)}{5-1}=\\frac{\\sqrt5+1}{2}" }, { t: "." }] },
+        { tex: grFrac(6, "\\sqrt{7}+1"), resultado: "\\sqrt{7}-1", falsas: ["\\sqrt{7}+1", "\\frac{\\sqrt{7}-1}{6}", "\\frac{6}{7}"], porque: [{ t: "Con el conjugado: " }, { m: "\\frac{6(\\sqrt7-1)}{7-1}=\\sqrt7-1" }, { t: "." }] }
+      ];
+
+      const grGenRacionalizar = () => {
+        const caso = grDe(GR_RACIONALIZAR);
+        return grPregunta(
+          [{ t: "Racionaliza: " }, { m: caso.tex }],
+          grOpcion({ m: caso.resultado }),
+          caso.falsas.map((tex) => grOpcion({ m: tex })),
+          caso.porque
+        );
+      };
+
+      const GR_COMPARAR_RADICALES = [
+        { a: "\\sqrt{2}", b: "\\sqrt[3]{3}", gana: 1, indice: "\\sqrt[6]{8}\\ \\text{y}\\ \\sqrt[6]{9}" },
+        { a: "\\sqrt{3}", b: "\\sqrt[3]{5}", gana: 0, indice: "\\sqrt[6]{27}\\ \\text{y}\\ \\sqrt[6]{25}" },
+        { a: "\\sqrt{5}", b: "\\sqrt[3]{11}", gana: 0, indice: "\\sqrt[6]{125}\\ \\text{y}\\ \\sqrt[6]{121}" },
+        { a: "\\sqrt[4]{5}", b: "\\sqrt{2}", gana: 0, indice: "\\sqrt[4]{5}\\ \\text{y}\\ \\sqrt[4]{4}" }
+      ];
+
+      const grGenCompararRadicales = () => {
+        const caso = grDe(GR_COMPARAR_RADICALES);
+        return grPregunta(
+          [{ t: "Sin calculadora: ¿cuál es mayor, " }, { m: caso.a }, { t: " o " }, { m: caso.b }, { t: "?" }],
+          grOpcion({ m: caso.gana === 0 ? caso.a : caso.b }),
+          [grOpcion({ m: caso.gana === 0 ? caso.b : caso.a }), grOpcion({ t: "Son iguales" })],
+          [{ t: "Se pasan a índice común y se comparan los radicandos: " }, { m: caso.indice }, { t: "." }]
+        );
+      };
+
+      const GR_RAIZ_DE_RAIZ = [
+        { tex: "\\sqrt{\\sqrt[3]{7}}", resultado: "\\sqrt[6]{7}", falsas: ["\\sqrt[5]{7}", "\\sqrt[3]{7}", "\\sqrt[9]{7}"], cuenta: "\\sqrt{\\sqrt[3]{7}}=\\sqrt[2\\cdot3]{7}=\\sqrt[6]{7}" },
+        { tex: "\\sqrt[3]{\\sqrt{5}}", resultado: "\\sqrt[6]{5}", falsas: ["\\sqrt[5]{5}", "\\sqrt[9]{5}", "\\sqrt{5}"], cuenta: "\\sqrt[3]{\\sqrt{5}}=\\sqrt[3\\cdot2]{5}=\\sqrt[6]{5}" },
+        { tex: "\\sqrt{\\sqrt{11}}", resultado: "\\sqrt[4]{11}", falsas: ["\\sqrt{11}", "\\sqrt[8]{11}", "\\sqrt[3]{11}"], cuenta: "\\sqrt{\\sqrt{11}}=\\sqrt[2\\cdot2]{11}=\\sqrt[4]{11}" },
+        { tex: "\\sqrt{\\sqrt[3]{64}}", resultado: "2", falsas: ["4", "8", "\\sqrt{2}"], cuenta: "\\sqrt{\\sqrt[3]{64}}=\\sqrt[6]{64}=\\sqrt[6]{2^{6}}=2" },
+        { tex: "\\sqrt[3]{\\sqrt{729}}", resultado: "3", falsas: ["9", "27", "\\sqrt{3}"], cuenta: "\\sqrt[3]{\\sqrt{729}}=\\sqrt[6]{729}=\\sqrt[6]{3^{6}}=3" }
+      ];
+
+      const grGenRaizDeRaiz = () => {
+        const caso = grDe(GR_RAIZ_DE_RAIZ);
+        return grPregunta(
+          [{ t: "Escribe con un solo radical y simplifica si procede: " }, { m: caso.tex }],
+          grOpcion({ m: caso.resultado }),
+          caso.falsas.map((tex) => grOpcion({ m: tex })),
+          [{ t: "Los índices se multiplican: " }, { m: caso.cuenta }, { t: "." }]
+        );
+      };
+
+      // ---- Guardián 6: el Logaritmo ----
+
+      const grGenLogaritmoDirecto = () => {
+        const variante = grEntero(0, 2);
+        if (variante === 0) {
+          const casos = [
+            { tex: "\\ln e", valor: 1 }, { tex: "\\ln 1", valor: 0 },
+            { tex: "\\ln e^{3}", valor: 3 }, { tex: "\\ln\\frac{1}{e}", valor: -1 }
+          ];
+          const caso = grDe(casos);
+          const candidatas = [caso.valor + 1, caso.valor - 1, caso.valor === 0 ? 10 : -caso.valor]
+            .filter((valor) => valor !== caso.valor)
+            .map((valor) => grOpcion({ m: String(valor) }, valor));
+          return grPregunta(
+            [{ t: "Calcula " }, { m: caso.tex }],
+            grOpcion({ m: String(caso.valor) }, caso.valor),
+            candidatas,
+            [{ t: "El logaritmo neperiano tiene base " }, { m: "e" }, { t: ", así que pregunta a qué exponente hay que elevar " }, { m: "e" }, { t: "." }]
+          );
+        }
+        const base = grDe([2, 3, 5, 10]);
+        const k = variante === 1 ? grEntero(2, base === 2 ? 6 : 4) : -grEntero(1, 3);
+        const potencia = Math.pow(base, Math.abs(k));
+        let argumentoTex;
+        if (k > 0) {
+          argumentoTex = String(potencia);
+        } else if (base === 10) {
+          argumentoTex = "0{,}" + "0".repeat(-k - 1) + "1";
+        } else {
+          argumentoTex = grFrac(1, potencia);
+        }
+        const logTex = base === 10 ? "\\log " + argumentoTex : "\\log_{" + base + "}" + argumentoTex;
+        const candidatas = [
+          grOpcion({ m: String(-k) }, -k),
+          grOpcion({ m: String(k + 1) }, k + 1),
+          grOpcion({ m: String(k - 1) }, k - 1)
+        ];
+        return grPregunta(
+          [{ t: "Calcula " }, { m: logTex }],
+          grOpcion({ m: String(k) }, k),
+          candidatas,
+          [{ m: base + "^{" + k + "}=" + (k > 0 ? potencia : argumentoTex) }, { t: ": el logaritmo es ese exponente" + (k < 0 ? " (negativo, porque el argumento es menor que 1)" : "") + "." }]
+        );
+      };
+
+      const grGenDefinicionLog = () => {
+        const base = grDe([2, 3, 5]);
+        let k = grEntero(2, 5);
+        // Con k igual a la base el primer distractor repetiría la respuesta
+        // correcta, y con base 2 y k 4 se convertiría en la igualdad
+        // verdadera log_4 16 = 2, porque 4^2 = 16 = 2^4.
+        while (k === base || (base === 2 && k === 4)) {
+          k = grEntero(2, 5);
+        }
+        const potencia = Math.pow(base, k);
+        const correcta = grOpcion({ m: "\\log_{" + base + "}" + potencia + "=" + k });
+        const candidatas = grCompletarOpciones(correcta, [
+          grOpcion({ m: "\\log_{" + k + "}" + potencia + "=" + base }),
+          grOpcion({ m: "\\log_{" + potencia + "}" + base + "=" + k }),
+          grOpcion({ m: "\\log_{" + base + "}" + k + "=" + potencia })
+        ]);
+        return grPregunta(
+          [{ t: "La igualdad " }, { m: base + "^{" + k + "}=" + potencia }, { t: " escrita en forma de logaritmo es…" }],
+          correcta,
+          candidatas,
+          [{ m: "\\log_{b}N=x\\iff b^{x}=N" }, { t: ": la base se conserva, y el logaritmo es el exponente." }]
+        );
+      };
+
+      const GR_LOGS_CON_DATOS = [
+        { objetivo: "\\log 6", valor: "0,778", falsas: ["0,144", "0,602", "0,954"], cuenta: "\\log 6=\\log 2+\\log 3" },
+        { objetivo: "\\log 4", valor: "0,602", falsas: ["0,091", "0,477", "0,301"], cuenta: "\\log 4=2\\log 2" },
+        { objetivo: "\\log 8", valor: "0,903", falsas: ["0,027", "0,602", "0,933"], cuenta: "\\log 8=3\\log 2" },
+        { objetivo: "\\log 5", valor: "0,699", falsas: ["0,5", "0,602", "0,301"], cuenta: "\\log 5=\\log\\frac{10}{2}=1-\\log 2" },
+        { objetivo: "\\log 9", valor: "0,954", falsas: ["0,477", "0,227", "0,903"], cuenta: "\\log 9=2\\log 3" },
+        { objetivo: "\\log 1{,}5", valor: "0,176", falsas: ["0,631", "0,778", "-0,176"], cuenta: "\\log 1{,}5=\\log 3-\\log 2" },
+        { objetivo: "\\log 20", valor: "1,301", falsas: ["0,602", "2,301", "0,778"], cuenta: "\\log 20=\\log 10+\\log 2=1+\\log 2" },
+        { objetivo: "\\log 12", valor: "1,079", falsas: ["0,778", "1,556", "0,903"], cuenta: "\\log 12=2\\log 2+\\log 3" }
+      ];
+
+      const grGenLogConDatos = () => {
+        const caso = grDe(GR_LOGS_CON_DATOS);
+        return grPregunta(
+          [{ t: "Con " }, { m: "\\log 2\\approx0{,}301" }, { t: " y " }, { m: "\\log 3\\approx0{,}477" }, { t: ", calcula " }, { m: caso.objetivo }],
+          grOpcion({ t: caso.valor }),
+          caso.falsas.map((texto) => grOpcion({ t: texto })),
+          [{ m: caso.cuenta }, { t: ". Las propiedades convierten productos en sumas, cocientes en restas y potencias en productos." }]
+        );
+      };
+
+      const GR_DESARROLLOS = [
+        {
+          tex: "\\log\\frac{x^{3}}{y}",
+          resultado: "3\\log x-\\log y",
+          falsas: ["3(\\log x-\\log y)", "3\\log x+\\log y", "\\frac{(\\log x)^{3}}{\\log y}"],
+          porque: [{ t: "El cociente se convierte en resta y el exponente 3 baja como coeficiente: " }, { m: "\\log\\frac{x^{3}}{y}=\\log x^{3}-\\log y=3\\log x-\\log y" }, { t: "." }]
+        },
+        {
+          tex: "\\log(a\\cdot b^{2})",
+          resultado: "\\log a+2\\log b",
+          falsas: ["2(\\log a+\\log b)", "2\\log a\\cdot\\log b", "\\log a+(\\log b)^{2}"],
+          porque: [{ t: "El producto se convierte en suma y solo baja el exponente que afecta a " }, { m: "b" }, { t: ": " }, { m: "\\log(a\\,b^{2})=\\log a+\\log b^{2}=\\log a+2\\log b" }, { t: "." }]
+        },
+        {
+          tex: "\\log\\sqrt{x}",
+          resultado: "\\tfrac12\\log x",
+          falsas: ["\\sqrt{\\log x}", "2\\log x", "\\log x-\\tfrac12"],
+          porque: [{ t: "La raíz es una potencia de exponente " }, { m: "\\tfrac12" }, { t: ", que baja como coeficiente: " }, { m: "\\log\\sqrt{x}=\\log x^{1/2}=\\tfrac12\\log x" }, { t: "." }]
+        }
+      ];
+
+      const grGenDesarrolloLog = () => {
+        if (Math.random() < 0.25) {
+          return grPregunta(
+            [{ t: "Condensa en un solo logaritmo: " }, { m: "\\log x+\\log y-2\\log z" }],
+            grOpcion({ m: "\\log\\frac{x\\,y}{z^{2}}" }),
+            [
+              grOpcion({ m: "\\log\\frac{x+y}{z^{2}}" }),
+              grOpcion({ m: "\\log\\frac{x\\,y}{2z}" }),
+              grOpcion({ m: "\\frac{\\log(x\\,y)}{\\log z^{2}}" })
+            ],
+            [{ t: "La suma se convierte en producto, la resta en cociente y el coeficiente 2 sube como exponente: " }, { m: "\\log x+\\log y-2\\log z=\\log\\frac{x\\,y}{z^{2}}" }, { t: "." }]
+          );
+        }
+        const caso = grDe(GR_DESARROLLOS);
+        return grPregunta(
+          [{ t: "Desarrolla: " }, { m: caso.tex }],
+          grOpcion({ m: caso.resultado }),
+          caso.falsas.map((tex) => grOpcion({ m: tex })),
+          caso.porque
+        );
+      };
+
+      const grGenEcuacionExponencial = () => {
+        if (Math.random() < 0.35) {
+          const pares = [[3, 5], [2, 7], [5, 3], [2, 3]];
+          const par = grDe(pares);
+          const correcta = grOpcion({ m: "\\frac{\\log " + par[1] + "}{\\log " + par[0] + "}" });
+          const candidatas = grCompletarOpciones(correcta, [
+            grOpcion({ m: "\\frac{\\log " + par[0] + "}{\\log " + par[1] + "}" }),
+            grOpcion({ m: "\\log\\frac{" + par[1] + "}{" + par[0] + "}" }),
+            grOpcion({ m: grFrac(par[1], par[0]) })
+          ]);
+          return grPregunta(
+            [{ t: "Resuelve " }, { m: par[0] + "^{x}=" + par[1] }],
+            correcta,
+            candidatas,
+            [{ t: "Se toman logaritmos: " }, { m: "x\\log " + par[0] + "=\\log " + par[1] }, { t: ", y se despeja dividiendo." }]
+          );
+        }
+        const casos = [
+          { tex: "2^{x}=32", x: 5 }, { tex: "2^{x}=64", x: 6 },
+          { tex: "3^{x}=81", x: 4 }, { tex: "5^{x}=125", x: 3 },
+          { tex: "10^{x}=0{,}001", x: -3 }, { tex: "2^{x}=\\frac18", x: -3 },
+          { tex: "3^{x}=\\frac19", x: -2 }, { tex: "7^{x}=1", x: 0 }
+        ];
+        const caso = grDe(casos);
+        // Con x = 0 el opuesto coincide con la solución: la reserva mantiene
+        // las cuatro opciones.
+        const candidatas = [-caso.x, caso.x + 1, caso.x - 1, caso.x + 2]
+          .filter((valor) => valor !== caso.x)
+          .map((valor) => grOpcion({ m: String(valor) }, valor));
+        return grPregunta(
+          [{ t: "Resuelve " }, { m: caso.tex }],
+          grOpcion({ m: String(caso.x) }, caso.x),
+          candidatas,
+          [{ t: "Basta igualar exponentes escribiendo el segundo miembro como potencia de la base." }]
+        );
+      };
+
+      const grGenAplicacionLog = () => {
+        const variante = grEntero(0, 3);
+        if (variante === 0) {
+          const a = grEntero(3, 9);
+          // Con a = 7 el distractor 14 − a vale 7 y se descarta, de ahí la
+          // cuarta opción de reserva.
+          const candidatas = [-a, a + 1, 14 - a, a - 1]
+            .filter((valor) => valor !== a)
+            .map((valor) => grOpcion({ t: String(valor) }, valor));
+          return grPregunta(
+            [{ t: "El pH es " }, { m: "-\\log[\\text{H}^{+}]" }, { t: ". Si " }, { m: "[\\text{H}^{+}]=10^{-" + a + "}" }, { t: ", el pH vale…" }],
+            grOpcion({ t: String(a) }, a),
+            candidatas,
+            [{ m: "-\\log 10^{-" + a + "}=-(-" + a + ")=" + a }, { t: ". Cada unidad de pH es un factor 10 en la concentración." }]
+          );
+        }
+        if (variante === 1) {
+          return grPregunta(
+            [
+              { t: "La magnitud de un terremoto es " },
+              { m: "M=\\log\\frac{A}{A_{0}}" },
+              { t: ", donde " },
+              { m: "A" },
+              { t: " es la amplitud de sus ondas. ¿Cuántas veces mayor es la amplitud de un terremoto de magnitud 6 que la de uno de magnitud 4?" }
+            ],
+            grOpcion({ t: "100 veces" }),
+            [grOpcion({ t: "2 veces" }), grOpcion({ t: "20 veces" }), grOpcion({ t: "1000 veces" })],
+            [{ t: "Al restar las magnitudes queda " }, { m: "\\log\\frac{A_{6}}{A_{4}}=6-4=2" }, { t: ", luego la razón de amplitudes es " }, { m: "10^{2}=100" }, { t: ". La escala es logarítmica: cada unidad multiplica la amplitud por 10." }]
+          );
+        }
+        if (variante === 2) {
+          return grPregunta(
+            [
+              { t: "El nivel sonoro en decibelios es " },
+              { m: "N=10\\log\\frac{I}{I_{0}}" },
+              { t: ". Si la intensidad " },
+              { m: "I" },
+              { t: " se hace 1000 veces mayor, ¿cuántos decibelios sube el nivel?" }
+            ],
+            grOpcion({ t: "30 dB" }),
+            [grOpcion({ t: "3 dB" }), grOpcion({ t: "1000 dB" }), grOpcion({ t: "300 dB" })],
+            [{ t: "La subida es " }, { m: "10\\log 1000=10\\cdot3=30" }, { t: " decibelios: los decibelios suman mientras la intensidad multiplica." }]
+          );
+        }
+        return grPregunta(
+          [
+            { t: "Un capital crece con interés compuesto según " },
+            { m: "C_{n}=C_{0}\\cdot1{,}07^{n}" },
+            { t: " (un 7 % anual). ¿En cuántos años se duplica, aproximadamente?" }
+          ],
+          grOpcion({ t: "Unos 10 años" }),
+          [grOpcion({ t: "Unos 2 años" }), grOpcion({ t: "Unos 14 años" }), grOpcion({ t: "Unos 20 años" })],
+          [{ m: "1{,}07^{n}=2\\iff n=\\frac{\\log 2}{\\log 1{,}07}\\approx10{,}2" }, { t: ". El logaritmo despeja el tiempo en el interés compuesto." }]
+        );
+      };
+
+      // ---- Jefe final: preguntas especiales ----
+
+      const GR_JEFE_ESPECIALES = [
+        () => grPregunta(
+          [{ t: "Los números " }, { m: "0{,}\\overline{9}" }, { t: " y " }, { m: "1" }, { t: " son…" }],
+          grOpcion({ t: "El mismo número" }),
+          [grOpcion({ t: "Distintos: falta una milésima" }), grOpcion({ t: "Distintos: uno es irracional" }), grOpcion({ t: "Consecutivos" })],
+          [{ m: "0{,}\\overline{9}=\\frac99=1" }, { t: ". Son dos escrituras del mismo número: entre ellos no cabe ningún otro." }]
+        ),
+        () => grPregunta(
+          [{ t: "Sin calculadora: ¿cuál es mayor, " }, { m: "\\sqrt2+\\sqrt3" }, { t: " o " }, { m: "\\sqrt{10}" }, { t: "?" }],
+          grOpcion({ m: "\\sqrt{10}" }),
+          [grOpcion({ m: "\\sqrt2+\\sqrt3" }), grOpcion({ t: "Son iguales" })],
+          [{ t: "Al elevar al cuadrado: " }, { m: "(\\sqrt2+\\sqrt3)^{2}=5+2\\sqrt6" }, { t: " y " }, { m: "2\\sqrt6=\\sqrt{24}<\\sqrt{25}=5" }, { t: ", luego " }, { m: "5+2\\sqrt6<10" }, { t: "." }]
+        ),
+        () => grPregunta(
+          [{ t: "¿Cuántos números racionales hay entre " }, { m: "0{,}3" }, { t: " y " }, { m: "0{,}\\overline{3}" }, { t: "?" }],
+          grOpcion({ t: "Infinitos" }),
+          [grOpcion({ t: "Ninguno" }), grOpcion({ t: "Uno" }), grOpcion({ t: "Tres" })],
+          [{ m: "0{,}3<0{,}\\overline{3}" }, { t: " son números distintos, y entre dos racionales distintos siempre hay infinitos racionales: es la densidad de " }, { m: "\\mathbb Q" }, { t: "." }]
+        ),
+        () => grPregunta(
+          [{ t: "¿Verdadero o falso? Entre dos números irracionales distintos siempre hay algún racional." }],
+          grOpcion({ t: "Verdadero" }),
+          [grOpcion({ t: "Falso" })],
+          [{ t: "Los racionales también son densos en la recta: basta truncar el desarrollo decimal de uno de ellos en el lugar adecuado." }]
+        ),
+        () => grPregunta(
+          [{ t: "El número " }, { m: "\\log_{2}5" }, { t: " es…" }],
+          grOpcion({ t: "Irracional" }),
+          [
+            grOpcion({ t: "Racional, pero no entero" }),
+            grOpcion({ t: "Entero" }),
+            grOpcion({ t: "No existe" })
+          ],
+          [{ t: "Si fuese " }, { m: "\\frac{p}{q}" }, { t: ", tendríamos " }, { m: "2^{p}=5^{q}" }, { t: ", imposible: una potencia de 2 nunca es una potencia de 5." }]
+        ),
+        () => grPregunta(
+          [{ t: "La suma de un racional y un irracional…" }],
+          grOpcion({ t: "Es siempre irracional" }),
+          [grOpcion({ t: "Es siempre racional" }), grOpcion({ t: "Puede ser cualquiera de las dos cosas" })],
+          [{ t: "Si el resultado fuese racional, restando el sumando racional resultaría que el irracional también lo era: contradicción." }]
+        ),
+        () => grPregunta(
+          [{ t: "Entre dos números reales distintos cualesquiera, ¿qué hay?" }],
+          grOpcion({ t: "Infinitos racionales e infinitos irracionales" }),
+          [grOpcion({ t: "Solo racionales" }), grOpcion({ t: "Solo irracionales" }), grOpcion({ t: "A veces, nada" })],
+          [{ t: "Ambos conjuntos son densos en la recta real: por muy cerca que estén dos reales, dentro conviven los dos tipos." }]
+        )
+      ];
+
+      // ---- Sprites pixel-art de los guardianes (SVG, sin imágenes) ----
+
+      const GR_SPRITES = {
+        heroe: {
+          paleta: { o: "#10162e", p: "#f8cfa8", w: "#ffffff",
+            k: "#10162e", c: "#2f6df0", C: "#1d4ed8", j: "#3f4a63",
+            z: "#b45309", g: "#10b981", G: "#047857", r: "#ef9a7a" },
+          filas: [
+            "........................",
+            ".........oooooooo.......",
+            "......ooogggggggggoo....",
+            ".....ogggggggggggggo....",
+            ".....oGGGGGGGGGGGGGo....",
+            "....ooooooooooooooooo...",
+            "....opppppppppppppppo...",
+            "....oppwwwpppppwwwppo...",
+            "....oppwkwpppppwkwppo...",
+            "....oppwwwpppppwwwppo...",
+            "....oprppppppppppprpo...",
+            "....oppppkpppppkppppo...",
+            "....opppppkkkkkpppppo...",
+            ".....ooooooooooooooo....",
+            "......occccccccccco.....",
+            "....ooocccccccccccooo...",
+            "..oopcccccCCCCCcccccpoo.",
+            "..opccccccccccccccccpo..",
+            "..oppcccccccccccccccppo.",
+            "...oocccccccccccccccoo..",
+            ".....ojjjjjjjjjjjjjo....",
+            ".....ojjjjjoojjjjjjo....",
+            "....ozzzzzo..ozzzzzo....",
+            "....oooooo....oooooo...."
+          ]
+        },
+        heroeSalto: {
+          paleta: { o: "#10162e", p: "#f8cfa8", w: "#ffffff",
+            k: "#10162e", c: "#2f6df0", C: "#1d4ed8", j: "#3f4a63",
+            z: "#b45309", g: "#10b981", G: "#047857", r: "#ef9a7a" },
+          filas: [
+            "..p..................p..",
+            ".opo................opo.",
+            ".opo....oooooooo....opo.",
+            ".opoooogggggggggoooopo..",
+            "..opogggggggggggggopo...",
+            "..oppGGGGGGGGGGGGGpo....",
+            "...ooooooooooooooooo....",
+            "....opppppppppppppppo...",
+            "....oppwwwpppppwwwppo...",
+            "....oppwkwpppppwkwppo...",
+            "....oppwwwpppppwwwppo...",
+            "....oprpppppppppppro....",
+            "....opppkkkkkkkkkpppo...",
+            "....oppppkkkkkkkppppo...",
+            ".....ooooooooooooooo....",
+            "......occccccccccco.....",
+            "....oocccccccccccccoo...",
+            "....occcccCCCCCccccco...",
+            "....occccccccccccccco...",
+            ".....ooccccccccccccoo...",
+            "...ojjjjjjjjjjjjjjjjo...",
+            "..ojjjjjooooooojjjjjjo..",
+            "..ozzzzo.......ozzzzzo..",
+            "..oooooo........oooooo.."
+          ]
+        },
+        heroeAturdido: {
+          paleta: { o: "#10162e", p: "#f8cfa8", w: "#ffffff",
+            k: "#10162e", c: "#2f6df0", C: "#1d4ed8", j: "#3f4a63",
+            z: "#b45309", g: "#10b981", G: "#047857", r: "#ef9a7a",
+            y: "#fde68a" },
+          filas: [
+            "...y.................y..",
+            "..y.y...............y.y.",
+            "...y.y..oooooooo...y.y..",
+            "....y.oogggggggggoo.y...",
+            ".....ogggggggggggggo....",
+            "....ooGGGGGGGGGGGGGoo...",
+            "....ooooooooooooooooo...",
+            "....opppppppppppppppo...",
+            "....oppwkwpppppwkwppo...",
+            "....oppkwkpppppkwkppo...",
+            "....oppwkwpppppwkwppo...",
+            "....oprpppppppppppro....",
+            "....oppppppkkkppppppo...",
+            ".....ooooooooooooooo....",
+            "......occccccccccco.....",
+            "..oooocccccccccccooooo..",
+            ".opccccccCCCCCCcccccpo..",
+            ".oppcccccccccccccccppo..",
+            "..ooccccccccccccccccoo..",
+            "....ojjjjjjjjjjjjjo.....",
+            "..oojjjjjjjjjjjjjjjoo...",
+            ".ozzzzjjjjjjjjjjjzzzzo..",
+            ".ozzzzo.........ozzzzo..",
+            ".oooooo.........oooooo.."
+          ]
+        },
+        clasificador: {
+          paleta: { o: "#04301f", b: "#34d399", B: "#10b981",
+            s: "#047857", l: "#a7f3d0", w: "#ffffff", k: "#04301f",
+            y: "#fde68a" },
+          filas: [
+            "........................",
+            "........................",
+            "..yy................yy..",
+            ".yy..................yy.",
+            ".yy..................yy.",
+            ".yy.....oooooooo.....yy.",
+            ".yy....obbbbbbbbo....yy.",
+            "yy....oblllbbbbbbo....yy",
+            "yy...obllbbbbbbbbbo...yy",
+            ".yy..obbbbbbbbbbbbo..yy.",
+            ".yy.obwwwbbbbbwwwbbo.yy.",
+            ".yy.obwkwbbbbbwkwbbo.yy.",
+            ".yy.obwwwbbbbbwwwbbo.yy.",
+            ".yy.obbbbbbbbbbbbbbo.yy.",
+            "yy..obbkbbbbbbbbkbbo..yy",
+            "yy..obbkkbbbbbbkkbbo..yy",
+            ".yy.obbbkkkkkkkkbbbo.yy.",
+            ".yy.oBBbbbbbbbbbbBBo.yy.",
+            ".yy.oBBBBbbbbbbBBBBo.yy.",
+            ".yy..osBBBBBBBBBBso..yy.",
+            "..yy.osssssssssssso.yy..",
+            "..yy..oooooooooooo..yy..",
+            "........................",
+            "........................"
+          ]
+        },
+        generatriz: {
+          paleta: { o: "#1e1b4b", b: "#a78bfa", B: "#8b5cf6",
+            l: "#ddd6fe", w: "#ffffff", k: "#1e1b4b", y: "#fde68a" },
+          filas: [
+            "........................",
+            "........oooooooo........",
+            "......oobbbbbbbboo......",
+            ".....oblllbbbbbbbbo.....",
+            "....obllbbbbbbbbbbbo....",
+            "...obllbbbbbbbbbbbbbo...",
+            "...oblbbbbbbbbbbbbbbo...",
+            "...obbwwwwbbbbwwwwbbo...",
+            "...obbwkkwbbbbwkkwbbo...",
+            "...obbwkkwbbbbwkkwbbo...",
+            "...obbwwwwbbbbwwwwbbo...",
+            "...obbbbbbbbbbbbbbbo....",
+            "...obbbkkkkkkkkkbbbo....",
+            "...obbbkwkwkwkwkbbbo....",
+            "...obbbbkkkkkkkbbbbo....",
+            "...oBbbbbbbbbbbbbbBo....",
+            "...oByybByybByybByBo....",
+            "...oBbyybbyybbyybbBo....",
+            "...oBBbbbbbbbbbbbbBo....",
+            "...oBBBbbbbbbbbbbBBo....",
+            "...oBBBBBBBBBBBBBBBo....",
+            "...oBBoooBBBoooBBBBo....",
+            "...oBo...oBo....oBBo....",
+            "....o.....o......oo....."
+          ]
+        },
+        centinela: {
+          paleta: { o: "#0b1120", m: "#e2e8f0", M: "#94a3b8",
+            d: "#475569", v: "#38bdf8", s: "#2563eb", S: "#1d4ed8",
+            w: "#dbeafe", g: "#ffffff", r: "#ef4444" },
+          filas: [
+            "..........r.............",
+            ".........rrr............",
+            ".........ooo............",
+            "........ooooooo.........",
+            ".......ommmmmmmo........",
+            "......ommmmmmmmmo.......",
+            "......omvvvvvvvmo.......",
+            "......omvgvvvgvmo.......",
+            "......omvvvvvvvmo.......",
+            "......ommmmmmmmmo.......",
+            ".......ooooooooo........",
+            "......oMMMMMMMMMo.......",
+            "...oooossssssssoooo.....",
+            "..ossoowwwwwwwwoossoo...",
+            "..osoowgggwwgggwoosso...",
+            "..osoowgwwwwwwgwoosso...",
+            "..osoowgwwwwwwgwoosso...",
+            "..osoowgggwwgggwoosso...",
+            "..ossoowwwwwwwwoossoo...",
+            "...oooSSSSSSSSSSooo.....",
+            "....oSSSSSSSSSSSSo......",
+            ".....oMMMoooMMMMo.......",
+            "....odddo...odddo.......",
+            "....ooooo...ooooo......."
+          ]
+        },
+        potencia: {
+          paleta: { o: "#111827", m: "#e2e8f0", M: "#94a3b8",
+            d: "#475569", a: "#fbbf24", c: "#0f172a", g: "#4ade80",
+            e: "#22d3ee", E: "#0891b2" },
+          filas: [
+            "...........a............",
+            "..........aaa...........",
+            "...........a............",
+            "...........o............",
+            ".....ooooooooooooo......",
+            "....ommmmmmmmmmmmmo.....",
+            "...ommmmmmmmmmmmmmmo....",
+            "...ommeeemmmmmeeemmo....",
+            "...ommeEemmmmmeEemmo....",
+            "...ommeeemmmmmeeemmo....",
+            "...ommmmmmmmmmmmmmmo....",
+            "...ommmoooooooooommmo...",
+            "...ommmmmmmmmmmmmmmmo...",
+            "....oMMMMMMMMMMMMMMo....",
+            "..oooddddddddddddddooo..",
+            ".oMoocccccccccccccooMo..",
+            ".oMocggcgggcccgccccoMo..",
+            ".oMocgccgcgcgcgccccoMo..",
+            ".oMocggcgggcgcgccccoMo..",
+            ".oMoocccccccccccccooMo..",
+            "..oooddddddddddddddooo..",
+            ".....oMMo......oMMo.....",
+            "....odddo......odddo....",
+            "....ooooo......ooooo...."
+          ]
+        },
+        radical: {
+          paleta: { o: "#33200f", r: "#c2740a", R: "#92400e",
+            d: "#6b3d0c", e: "#fbbf24", w: "#ffffff", k: "#33200f",
+            g: "#16a34a", G: "#15803d" },
+          filas: [
+            "..........gg............",
+            ".........ggGg...........",
+            "........gggGgg..........",
+            "..........gg............",
+            ".....ooooooooooo........",
+            "....orrrrrrrrrrro.......",
+            "...orrrrrrrrrrrrro......",
+            "..orrrrrrrrrrrrrrro.....",
+            "..orrwwwrrrrrwwwrro.....",
+            "..orrwkwrrrrrwkwrro.....",
+            "..orrwwwrrrrrwwwrro.....",
+            "..orrrrrrrrrrrrrrro.....",
+            "..orrrrreeeeerrrrro.....",
+            "..orrrrrrrrrrrrrrro.....",
+            "..orrrkrrrrrrrkrrro.....",
+            "..orrrkkkkkkkkkrrro.....",
+            "..oRRrrrrrrrrrrrRRo.....",
+            "...oRRRRRRRRRRRRRo......",
+            "....oRRoooooooRRo.......",
+            "...oddo...o...oddo......",
+            "..oddo....d....oddo.....",
+            ".oddo.....d.....oddo....",
+            "odo.......d.......odo...",
+            "oo........o........oo..."
+          ]
+        },
+        logaritmo: {
+          paleta: { o: "#2b1c10", b: "#c2740a", B: "#92400e",
+            i: "#ffffff", e: "#1c1917", k: "#f97316", g: "#e7e5e4",
+            y: "#fbbf24", d: "#78350f" },
+          filas: [
+            "...oo.............oo....",
+            "..obbo...........obbo...",
+            "..obbboooooooooobbbo....",
+            "...obbbbbbbbbbbbbbo.....",
+            "..obbbbbbbbbbbbbbbbo....",
+            ".obbggggggbbggggggbbo...",
+            ".obbgiiiigbgiiiigbbbo...",
+            ".obbgieeigbgieeigbbbo...",
+            ".obbgiiiigbgiiiigbbbo...",
+            ".obbggggggybggggggbbo...",
+            ".obbbbbbbbyyybbbbbbbo...",
+            ".obbbbbbbbbybbbbbbbbo...",
+            ".obBbBbBbBbBbBbBbBbbo...",
+            ".obbBbBbBbBbBbBbBbBbo...",
+            ".obBbBbBbBbBbBbBbBbbo...",
+            "..obbBbBbBbBbBbBbBbo....",
+            "..obBbBbBbBbBbBbBbbo....",
+            "...obbbBbBbBbBbBbbo.....",
+            "....obbbbbbbbbbbbo......",
+            ".....oodbbbbbdoo........",
+            "......okko.okko.........",
+            ".....okkko.okkko........",
+            ".....ooooo.ooooo........",
+            "........................"
+          ]
+        },
+        jefe: {
+          paleta: { o: "#150c38", c: "#fbbf24", C: "#d97706",
+            b: "#8b5cf6", d: "#5b21b6", D: "#4c1d95", l: "#c4b5fd",
+            w: "#ffffff", e: "#ef4444", y: "#fde68a" },
+          filas: [
+            "....c.....c.....c.....c.....",
+            "...ccc...ccc...ccc...ccc....",
+            "...cCc...cCc...cCc...cCc....",
+            "..cCCCcccCCCcccCCCcccCCCc...",
+            "..cCCCCCCCCCCCCCCCCCCCCCc...",
+            "..ooooooooooooooooooooooo...",
+            "..obbbbbbbbbbbbbbbbbbbbbo...",
+            ".obbbbbbbbbbbbbbbbbbbbbbbo..",
+            ".obwwwwwbbbbbbbbbbwwwwwbbo..",
+            ".obwweewbbbbbbbbbbwweewbbo..",
+            ".obwweewbbbbbbbbbbwweewbbo..",
+            ".obwwwwwbbbbbbbbbbwwwwwbbo..",
+            ".obbbbbbbbbbbbbbbbbbbbbbbo..",
+            ".obbbbbbyyyyyyyyyybbbbbbbo..",
+            ".obbbbbbywwyywwyywbbbbbbbo..",
+            ".obbbbbbywwyywwyywbbbbbbbo..",
+            ".obbbbbbyyyyyyyyyybbbbbbbo..",
+            "..obbbbbbbbbbbbbbbbbbbbbo...",
+            "..oddddddddddddddddddddddo..",
+            ".oddddddddddddddddddddddddo.",
+            "odlDddoodddddddddddoodDlddo.",
+            "odllDdo..oddddddddo..odDlldo",
+            ".oddDo....odddddddo....oDddo",
+            "..ooo.....oddddddo......ooo.",
+            "..........oddddddo..........",
+            ".........oDDoooDDo..........",
+            "........oDDo...oDDo.........",
+            ".......oooo.....oooo........"
+          ]
+        }
+      };
+
+      function GrSprite({ dibujo, etiqueta, clase }) {
+        const filas = dibujo.filas;
+        const alto = filas.length;
+        let ancho = 0;
+        filas.forEach((fila) => {
+          ancho = Math.max(ancho, fila.length);
+        });
+        return (
+          <span className={"gr-sprite" + (clase ? " " + clase : "")}>
+            <svg
+              viewBox={"0 0 " + ancho + " " + alto}
+              shapeRendering="crispEdges"
+              role={etiqueta ? "img" : undefined}
+              aria-label={etiqueta || undefined}
+              aria-hidden={etiqueta ? undefined : "true"}
+              focusable="false"
+            >
+              {filas.map((fila, y) => {
+                const rectangulos = [];
+                let x = 0;
+                while (x < fila.length) {
+                  const caracter = fila[x];
+                  let fin = x;
+                  while (fin < fila.length && fila[fin] === caracter) {
+                    fin += 1;
+                  }
+                  if (caracter !== "." && dibujo.paleta[caracter]) {
+                    rectangulos.push(
+                      <rect
+                        key={y + "-" + x}
+                        x={x}
+                        y={y}
+                        width={fin - x}
+                        height={1}
+                        fill={dibujo.paleta[caracter]}
+                      />
+                    );
+                  }
+                  x = fin;
+                }
+                return rectangulos;
+              })}
+            </svg>
+          </span>
+        );
+      }
+
+      const GR_CORAZON_FILAS = [".xx.xx.", "xxxxxxx", "xxxxxxx", ".xxxxx.", "..xxx..", "...x..."];
+
+      function GrCorazones({ total, vivos, etiqueta }) {
+        const corazones = [];
+        for (let i = 0; i < total; i += 1) {
+          corazones.push(i < vivos);
+        }
+        return (
+          <span className="gr-corazones" role="img" aria-label={etiqueta}>
+            {corazones.map((lleno, indice) => (
+              <svg
+                key={indice}
+                viewBox="0 0 7 6"
+                width="17"
+                height="15"
+                shapeRendering="crispEdges"
+                aria-hidden="true"
+                focusable="false"
+              >
+                {GR_CORAZON_FILAS.map((fila, y) => {
+                  const rectangulos = [];
+                  let x = 0;
+                  while (x < fila.length) {
+                    let fin = x;
+                    while (fin < fila.length && fila[fin] === fila[x]) {
+                      fin += 1;
+                    }
+                    if (fila[x] === "x") {
+                      rectangulos.push(
+                        <rect
+                          key={y + "-" + x}
+                          x={x}
+                          y={y}
+                          width={fin - x}
+                          height={1}
+                          fill={lleno ? "#ef4444" : "#3f3f5e"}
+                        />
+                      );
+                    }
+                    x = fin;
+                  }
+                  return rectangulos;
+                })}
+              </svg>
+            ))}
+          </span>
+        );
+      }
+
+      const GR_GUARDIANES = [
+        {
+          clave: "clasificador",
+          simbolo: "ℚ",
+          nombre: "El Clasificador",
+          apartado: "Conjuntos numéricos",
+          grito: "¡Cada número, a su conjunto!",
+          generadores: [grGenClasificar, grGenVerdaderoFalso, grGenRacionalONo]
+        },
+        {
+          clave: "generatriz",
+          simbolo: "9",
+          nombre: "La Generatriz",
+          apartado: "Decimales y fracciones",
+          grito: "Mis cifras se repiten sin fin…",
+          generadores: [grGenTipoDecimal, grGenGeneratriz, grGenNueves]
+        },
+        {
+          clave: "centinela",
+          simbolo: "|x|",
+          nombre: "El Centinela",
+          apartado: "Orden, intervalos y valor absoluto",
+          grito: "¡No entrarás en mi intervalo!",
+          generadores: [
+            grGenValorAbsolutoAIntervalo,
+            grGenIntervaloAValorAbsoluto,
+            grGenDistancia,
+            grGenOperacionIntervalos,
+            grGenAbsolutoLejos,
+            grGenEntorno
+          ]
+        },
+        {
+          clave: "potencia",
+          simbolo: "x²",
+          nombre: "La Potencia",
+          apartado: "Potencias, notación científica y errores",
+          grito: "Mi poder crece exponencialmente.",
+          generadores: [
+            grGenExponenteNegativo,
+            grGenSignoPotencia,
+            grGenProductoPotencias,
+            grGenNotacionCientifica,
+            grGenOperacionCientifica,
+            grGenError,
+            grGenCalidadMedida,
+            grGenRedondeo
+          ]
+        },
+        {
+          clave: "radical",
+          simbolo: "√",
+          nombre: "El Radical",
+          apartado: "Radicales",
+          grito: "Mis raíces son profundas.",
+          generadores: [
+            grGenSimplificarRadical,
+            grGenExponenteRacional,
+            grGenSumaRadicales,
+            grGenRacionalizar,
+            grGenCompararRadicales,
+            grGenRaizDeRaiz
+          ]
+        },
+        {
+          clave: "logaritmo",
+          simbolo: "log",
+          nombre: "El Logaritmo",
+          apartado: "Logaritmos",
+          grito: "Reduzco gigantes a números pequeños.",
+          generadores: [
+            grGenLogaritmoDirecto,
+            grGenDefinicionLog,
+            grGenLogConDatos,
+            grGenDesarrolloLog,
+            grGenEcuacionExponencial,
+            grGenAplicacionLog
+          ]
+        }
+      ];
+
+      const GR_JEFE = {
+        clave: "jefe",
+          simbolo: "ℵ",
+        nombre: "Áleph, Señor del Continuo",
+        apartado: "Toda la unidad",
+        grito: "Yo custodio la recta real entera."
+      };
+
+      const grNuevaPregunta = (indice, usadas) => {
+        const esJefe = indice >= GR_GUARDIANES.length;
+        let ultima = null;
+        for (let intento = 0; intento < 30; intento += 1) {
+          let generador;
+          if (esJefe) {
+            generador =
+              Math.random() < 0.45
+                ? grDe(GR_JEFE_ESPECIALES)
+                : grDe(grDe(GR_GUARDIANES).generadores);
+          } else {
+            generador = grDe(GR_GUARDIANES[indice].generadores);
+          }
+          const pregunta = generador();
+          if (pregunta) {
+            ultima = pregunta;
+            if (!usadas[pregunta.clave]) {
+              return pregunta;
+            }
+          }
+        }
+        return ultima;
+      };
+
+      function GrTextoConFormulas({ partes }) {
+        return (
+          <span>
+            {partes.map((parte, indice) =>
+              parte.m !== undefined ? (
+                <MatematicaEnLinea key={indice} tex={parte.m} />
+              ) : (
+                <span key={indice}>{parte.t}</span>
+              )
+            )}
+          </span>
+        );
+      }
+
+      // Proyectil que lanza el guardián cuando el jugador falla: una bola con
+      // el símbolo del apartado que custodia.
+      function GrProyectil({ simbolo }) {
+        return (
+          <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            <circle cx="20" cy="20" r="17" fill="#fbbf24" stroke="#0b1026" strokeWidth="3" />
+            <circle cx="14" cy="13" r="4" fill="#fde68a" />
+            <text
+              x="20"
+              y="27"
+              textAnchor="middle"
+              fill="#241a02"
+              fontSize={simbolo.length > 2 ? 13 : 19}
+              fontWeight="800"
+              fontFamily="ui-monospace, Menlo, monospace"
+            >
+              {simbolo}
+            </text>
+          </svg>
+        );
+      }
+
+      function GuardianesRealesInteractivo({ configuracion, alPreparar }) {
+        const [pantalla, setPantalla] = React.useState("portada");
+        const [modo, setModo] = React.useState("individual");
+        const [sonido, setSonido] = React.useState(true);
+        const [derrotados, setDerrotados] = React.useState([]);
+        const [vidas, setVidas] = React.useState(3);
+        const [puntos, setPuntos] = React.useState(0);
+        const [racha, setRacha] = React.useState(0);
+        const [mejorRacha, setMejorRacha] = React.useState(0);
+        const [aciertos, setAciertos] = React.useState(0);
+        const [fallos, setFallos] = React.useState(0);
+        const [marcador, setMarcador] = React.useState([0, 0]);
+        const [turno, setTurno] = React.useState(0);
+        const [combate, setCombate] = React.useState(null);
+        const [record, setRecord] = React.useState(null);
+        const [recordNuevo, setRecordNuevo] = React.useState(false);
+        const [huboReintento, setHuboReintento] = React.useState(false);
+        const [salto, setSalto] = React.useState(180);
+        const [heroeGolpeado, setHeroeGolpeado] = React.useState(false);
+        const arenaRef = React.useRef(null);
+        const heroeRef = React.useRef(null);
+        const rivalRef = React.useRef(null);
+        const temporizador = React.useRef(null);
+        const continuarRef = React.useRef(null);
+
+        React.useEffect(() => {
+          if (window.katex) {
+            alPreparar();
+          }
+        }, [alPreparar]);
+
+        React.useEffect(() => {
+          try {
+            const guardado = window.localStorage.getItem("gr-record-guardianes");
+            if (guardado) {
+              setRecord(JSON.parse(guardado));
+            }
+          } catch (error) {
+            // Sin almacenamiento disponible: el récord simplemente no persiste.
+          }
+          return () => {
+            if (temporizador.current) {
+              window.clearTimeout(temporizador.current);
+            }
+          };
+        }, []);
+
+        // Distancia real entre los dos luchadores: el salto la usa para
+        // aterrizar justo encima del guardián sea cual sea el ancho.
+        React.useLayoutEffect(() => {
+          const medir = () => {
+            if (!heroeRef.current || !rivalRef.current) {
+              return;
+            }
+            const desdeHeroe = heroeRef.current.getBoundingClientRect();
+            const hastaRival = rivalRef.current.getBoundingClientRect();
+            const distancia = Math.round(
+              hastaRival.left +
+                hastaRival.width / 2 -
+                (desdeHeroe.left + desdeHeroe.width / 2)
+            );
+            setSalto((anterior) =>
+              Math.abs(anterior - distancia) < 2 ? anterior : distancia
+            );
+          };
+          medir();
+          window.addEventListener("resize", medir);
+          return () => window.removeEventListener("resize", medir);
+        });
+
+        // Al responder, los botones de opción se deshabilitan y el foco del
+        // teclado se quedaría huérfano: pasa al botón de continuar.
+        const hayRespuesta = combate !== null && combate.respuesta !== null;
+        React.useEffect(() => {
+          if (!hayRespuesta || !continuarRef.current) {
+            return;
+          }
+          const activo = document.activeElement;
+          if (!activo || activo === document.body || activo.disabled) {
+            continuarRef.current.focus();
+          }
+        }, [hayRespuesta]);
+
+        // Una partida con reintentos no compite por el récord: si contase,
+        // bastaría con reintentar sin fin para acumular puntos.
+        const esFinalConRecord =
+          pantalla === "final" && modo === "individual" && !huboReintento;
+        React.useEffect(() => {
+          if (!esFinalConRecord) {
+            return;
+          }
+          if (record && record.puntos >= puntos) {
+            return;
+          }
+          const nuevo = {
+            puntos,
+            fecha: new Date().toLocaleDateString("es-ES")
+          };
+          setRecord(nuevo);
+          setRecordNuevo(true);
+          try {
+            window.localStorage.setItem(
+              "gr-record-guardianes",
+              JSON.stringify(nuevo)
+            );
+          } catch (error) {
+            // Igual que arriba: sin persistencia no pasa nada grave.
+          }
+        }, [esFinalConRecord]);
+
+        if (!window.katex) {
+          return null;
+        }
+
+        const indiceSiguiente = derrotados.length;
+        const nombresEquipo = ["Equipo azul", "Equipo rojo"];
+
+        const empezarPartida = (modoElegido) => {
+          setModo(modoElegido);
+          setDerrotados([]);
+          setVidas(3);
+          setPuntos(0);
+          setRacha(0);
+          setMejorRacha(0);
+          setAciertos(0);
+          setFallos(0);
+          setMarcador([0, 0]);
+          setTurno(0);
+          setCombate(null);
+          setRecordNuevo(false);
+          setHeroeGolpeado(false);
+          setHuboReintento(false);
+          setPantalla("mapa");
+          grSonar("paso", sonido);
+        };
+
+        const abrirCombate = (indice) => {
+          const usadas = {};
+          const pregunta = grNuevaPregunta(indice, usadas);
+          if (!pregunta) {
+            return;
+          }
+          usadas[pregunta.clave] = true;
+          setCombate({
+            indice,
+            vidaRival: indice === 6 ? 5 : 3,
+            vidaTotal: indice === 6 ? 5 : 3,
+            pregunta,
+            respuesta: null,
+            usadas,
+            animacion: null
+          });
+          setPantalla("combate");
+          grSonar(indice === 6 ? "jefe" : "paso", sonido);
+        };
+
+        const responder = (indiceOpcion) => {
+          if (!combate || combate.respuesta !== null) {
+            return;
+          }
+          const opcion = combate.pregunta.opciones[indiceOpcion];
+          if (opcion.esCorrecta) {
+            const nuevaRacha = racha + 1;
+            setRacha(nuevaRacha);
+            setMejorRacha(Math.max(mejorRacha, nuevaRacha));
+            setAciertos(aciertos + 1);
+            if (modo === "individual") {
+              const ganancia =
+                Math.min(100 + 25 * (nuevaRacha - 1), 200) *
+                (combate.indice === 6 ? 2 : 1);
+              setPuntos(puntos + ganancia);
+            } else {
+              setMarcador(
+                turno === 0
+                  ? [marcador[0] + 1, marcador[1]]
+                  : [marcador[0], marcador[1] + 1]
+              );
+            }
+            const vidaNueva = combate.vidaRival - 1;
+            grSonar(vidaNueva === 0 ? "victoria" : "acierto", sonido);
+            setCombate({
+              ...combate,
+              respuesta: indiceOpcion,
+              vidaRival: vidaNueva,
+              animacion: vidaNueva === 0 ? "remate" : "salto"
+            });
+          } else {
+            grSonar("fallo", sonido);
+            setRacha(0);
+            setFallos(fallos + 1);
+            if (modo === "individual") {
+              setVidas(vidas - 1);
+            }
+            setCombate({
+              ...combate,
+              respuesta: indiceOpcion,
+              animacion: "contraataque"
+            });
+            // El personaje solo se queda con cara de mareo cuando el
+            // proyectil del guardián llega hasta él.
+            if (temporizador.current) {
+              window.clearTimeout(temporizador.current);
+            }
+            temporizador.current = window.setTimeout(() => {
+              setHeroeGolpeado(true);
+            }, 460);
+          }
+        };
+
+        const continuar = () => {
+          if (!combate) {
+            return;
+          }
+          setHeroeGolpeado(false);
+          if (temporizador.current) {
+            window.clearTimeout(temporizador.current);
+            temporizador.current = null;
+          }
+          if (combate.vidaRival === 0) {
+            const nuevos = derrotados.concat(combate.indice);
+            setDerrotados(nuevos);
+            setCombate(null);
+            // El turno también cambia al cerrar el combate: si no, el equipo
+            // que asesta el golpe final abriría el siguiente guardián.
+            if (modo === "equipos") {
+              setTurno(1 - turno);
+            }
+            setPantalla(combate.indice === 6 ? "final" : "mapa");
+            return;
+          }
+          if (modo === "individual" && vidas === 0) {
+            grSonar("derrota", sonido);
+            setPantalla("derrota");
+            return;
+          }
+          const pregunta = grNuevaPregunta(combate.indice, combate.usadas);
+          if (!pregunta) {
+            return;
+          }
+          combate.usadas[pregunta.clave] = true;
+          if (modo === "equipos") {
+            setTurno(1 - turno);
+          }
+          setCombate({
+            ...combate,
+            pregunta,
+            respuesta: null,
+            animacion: null
+          });
+        };
+
+        const reintentar = () => {
+          setVidas(3);
+          setRacha(0);
+          setHuboReintento(true);
+          abrirCombate(combate ? combate.indice : indiceSiguiente);
+        };
+
+        const botonSonido = (
+          <button
+            type="button"
+            className="gr-boton es-secundario"
+            onClick={() => setSonido(!sonido)}
+          >
+            {sonido ? "Sonido: sí" : "Sonido: no"}
+          </button>
+        );
+
+        const rivalDatos = (indice) =>
+          indice === 6 ? GR_JEFE : GR_GUARDIANES[indice];
+
+        const saltando =
+          combate !== null &&
+          (combate.animacion === "salto" || combate.animacion === "remate");
+
+        let contenido = null;
+
+        if (pantalla === "portada") {
+          contenido = (
+            <div className="gr-pantalla">
+              <p className="gr-rotulo">Los Guardianes de ℝ</p>
+              <p className="gr-subrotulo">
+                Seis guardianes custodian la unidad. Derrota a los seis,
+                planta cara a Áleph y conviértete en Maestro de los Reales.
+              </p>
+              <div className="gr-mapa" aria-hidden="true">
+                {GR_GUARDIANES.map((guardian) => (
+                  <div key={guardian.clave} style={{ width: "3.4rem" }}>
+                    <GrSprite dibujo={GR_SPRITES[guardian.clave]} etiqueta="" />
+                  </div>
+                ))}
+              </div>
+              <div className="gr-botonera">
+                <button
+                  type="button"
+                  className="gr-boton es-principal"
+                  onClick={() => empezarPartida("individual")}
+                >
+                  Un jugador
+                </button>
+                <button
+                  type="button"
+                  className="gr-boton es-principal"
+                  onClick={() => empezarPartida("equipos")}
+                >
+                  Duelo por equipos
+                </button>
+                {botonSonido}
+              </div>
+              <p className="gr-nota-pie">
+                Cada respuesta correcta es un golpe: tres derriban a un
+                guardián y cinco al jefe. En modo individual tienes tres
+                vidas y cada acierto encadenado vale más puntos; por equipos,
+                los turnos se alternan y gana quien asesta más golpes.
+                {record
+                  ? " Récord local: " + record.puntos + " puntos (" + record.fecha + ")."
+                  : ""}
+              </p>
+            </div>
+          );
+        } else if (pantalla === "mapa") {
+          contenido = (
+            <div className="gr-pantalla">
+              <p className="gr-rotulo">Mapa de la unidad</p>
+              {modo === "individual" ? (
+                <div className="gr-marcadores">
+                  <span>
+                    Vidas:{" "}
+                    <GrCorazones total={3} vivos={vidas} etiqueta={"Te quedan " + vidas + " vidas de 3"} />
+                  </span>
+                  <span>
+                    Puntos: <strong>{puntos}</strong>
+                  </span>
+                  <span>
+                    Racha: <strong>{racha}</strong>
+                  </span>
+                </div>
+              ) : (
+                <div className="gr-equipos">
+                  {nombresEquipo.map((nombre, indice) => (
+                    <span
+                      key={nombre}
+                      className={
+                        "gr-equipo " +
+                        (indice === 0 ? "es-azul" : "es-rojo") +
+                        (turno === indice ? " tiene-turno" : "")
+                      }
+                    >
+                      {nombre}: {marcador[indice]}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="gr-mapa">
+                {GR_GUARDIANES.map((guardian, indice) => {
+                  const derrotado = derrotados.indexOf(indice) !== -1;
+                  const actual = indice === indiceSiguiente;
+                  return (
+                    <button
+                      key={guardian.clave}
+                      type="button"
+                      className={
+                        "gr-nodo" +
+                        (derrotado ? " es-derrotado" : "") +
+                        (actual ? " es-actual" : "") +
+                        (!derrotado && !actual ? " es-bloqueado" : "")
+                      }
+                      disabled={!actual}
+                      onClick={() => abrirCombate(indice)}
+                      aria-label={
+                        guardian.nombre +
+                        " (" +
+                        guardian.apartado +
+                        "): " +
+                        (derrotado
+                          ? "derrotado"
+                          : actual
+                            ? "combate disponible"
+                            : "todavía bloqueado")
+                      }
+                    >
+                      <span className="gr-nodo-numero">
+                        {derrotado ? <span className="gr-medalla">★ VENCIDO</span> : "GUARDIÁN " + (indice + 1)}
+                      </span>
+                      <GrSprite dibujo={GR_SPRITES[guardian.clave]} etiqueta="" />
+                      <span>{guardian.nombre}</span>
+                      <span className="gr-nodo-numero">{guardian.apartado}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className={
+                    "gr-nodo" +
+                    (derrotados.indexOf(6) !== -1
+                      ? " es-derrotado"
+                      : indiceSiguiente === 6
+                        ? " es-actual"
+                        : " es-bloqueado")
+                  }
+                  disabled={indiceSiguiente !== 6}
+                  onClick={() => abrirCombate(6)}
+                  aria-label={
+                    GR_JEFE.nombre +
+                    ": " +
+                    (indiceSiguiente === 6
+                      ? "combate final disponible"
+                      : "se desbloquea al vencer a los seis guardianes")
+                  }
+                >
+                  <span className="gr-nodo-numero">JEFE FINAL</span>
+                  <GrSprite dibujo={GR_SPRITES.jefe} etiqueta="" />
+                  <span>Áleph</span>
+                  <span className="gr-nodo-numero">Señor del Continuo</span>
+                </button>
+              </div>
+              <div className="gr-botonera">
+                {botonSonido}
+                <button
+                  type="button"
+                  className="gr-boton es-secundario"
+                  onClick={() => setPantalla("portada")}
+                >
+                  Abandonar partida
+                </button>
+              </div>
+            </div>
+          );
+        } else if (pantalla === "combate" && combate) {
+          const rival = rivalDatos(combate.indice);
+          const esJefe = combate.indice === 6;
+          const respondida = combate.respuesta !== null;
+          const opcionElegida = respondida
+            ? combate.pregunta.opciones[combate.respuesta]
+            : null;
+          contenido = (
+            <div className="gr-pantalla">
+              <p className="gr-rotulo">{rival.nombre}</p>
+              <p className="gr-subrotulo">
+                {rival.apartado} — «{rival.grito}»
+              </p>
+              {modo === "individual" ? (
+                <div className="gr-marcadores">
+                  <span>
+                    Vidas:{" "}
+                    <GrCorazones total={3} vivos={vidas} etiqueta={"Te quedan " + vidas + " vidas de 3"} />
+                  </span>
+                  <span>
+                    Rival:{" "}
+                    <GrCorazones
+                      total={combate.vidaTotal}
+                      vivos={combate.vidaRival}
+                      etiqueta={"Al rival le quedan " + combate.vidaRival + " corazones de " + combate.vidaTotal}
+                    />
+                  </span>
+                  <span>
+                    Puntos: <strong>{puntos}</strong>
+                  </span>
+                  <span>
+                    Racha: <strong>{racha}</strong>
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <div className="gr-equipos">
+                    {nombresEquipo.map((nombre, indice) => (
+                      <span
+                        key={nombre}
+                        className={
+                          "gr-equipo " +
+                          (indice === 0 ? "es-azul" : "es-rojo") +
+                          (turno === indice ? " tiene-turno" : "")
+                        }
+                      >
+                        {nombre}: {marcador[indice]}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="gr-marcadores">
+                    <span>
+                      Responde el <strong>{nombresEquipo[turno].toLowerCase()}</strong>
+                    </span>
+                    <span>
+                      Rival:{" "}
+                      <GrCorazones
+                        total={combate.vidaTotal}
+                        vivos={combate.vidaRival}
+                        etiqueta={"Al rival le quedan " + combate.vidaRival + " corazones de " + combate.vidaTotal}
+                      />
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div
+                className="gr-arena"
+                ref={arenaRef}
+                style={{ "--gr-salto": salto + "px" }}
+              >
+                <div
+                  className={
+                    "gr-luchador gr-heroe" +
+                    (saltando ? " esta-saltando" : "") +
+                    (combate.animacion === "contraataque" ? " esta-golpeado" : "")
+                  }
+                  ref={heroeRef}
+                >
+                  <GrSprite
+                    dibujo={
+                      heroeGolpeado
+                        ? GR_SPRITES.heroeAturdido
+                        : saltando
+                          ? GR_SPRITES.heroeSalto
+                          : GR_SPRITES.heroe
+                    }
+                    etiqueta="Tu personaje"
+                  />
+                  <span className="gr-nombre-luchador">
+                    {modo === "equipos" ? nombresEquipo[turno] : "Tú"}
+                  </span>
+                </div>
+                <div
+                  className={
+                    "gr-luchador gr-rival" +
+                    (esJefe ? " es-jefe" : "") +
+                    (combate.animacion === "salto" ? " esta-aplastado" : "") +
+                    (combate.animacion === "remate" ? " esta-cayendo" : "") +
+                    (combate.animacion === "contraataque" ? " esta-cargando" : "")
+                  }
+                  ref={rivalRef}
+                >
+                  <GrSprite dibujo={GR_SPRITES[rival.clave]} etiqueta={rival.nombre} />
+                  <span className="gr-nombre-luchador">{rival.nombre}</span>
+                  {combate.animacion === "contraataque" && (
+                    <span className="gr-proyectil" aria-hidden="true">
+                      <GrProyectil simbolo={rival.simbolo} />
+                    </span>
+                  )}
+                </div>
+                {saltando && (
+                  <span className="gr-onomatopeya es-golpe" aria-hidden="true">
+                    {combate.animacion === "remate" ? "¡PUMBA!" : "¡BOING!"}
+                  </span>
+                )}
+                {combate.animacion === "contraataque" && (
+                  <span className="gr-onomatopeya es-daño" aria-hidden="true">
+                    ¡ZAS!
+                  </span>
+                )}
+              </div>
+              <div className="gr-tarjeta-pregunta">
+                {/* Región viva siempre montada: si apareciera junto con su
+                    texto, los lectores de pantalla no lo anunciarían. */}
+                <p className="gr-anuncio" aria-live="polite">
+                  {respondida
+                    ? (opcionElegida.esCorrecta ? "Correcto. " : "Incorrecto. ") +
+                      combate.pregunta.explicacion
+                        .map((parte) => parte.t || parte.m || "")
+                        .join(" ")
+                    : ""}
+                </p>
+                <p className="gr-enunciado">
+                  <GrTextoConFormulas partes={combate.pregunta.enunciado} />
+                </p>
+                <div className="gr-opciones">
+                  {combate.pregunta.opciones.map((opcion, indice) => (
+                    <button
+                      key={opcion.clave}
+                      type="button"
+                      className={
+                        "gr-opcion" +
+                        (respondida && opcion.esCorrecta ? " es-correcta" : "") +
+                        (respondida && indice === combate.respuesta && !opcion.esCorrecta
+                          ? " es-fallida"
+                          : "") +
+                        (respondida && indice !== combate.respuesta && !opcion.esCorrecta
+                          ? " es-apagada"
+                          : "")
+                      }
+                      disabled={respondida}
+                      onClick={() => responder(indice)}
+                    >
+                      <GrTextoConFormulas
+                        partes={
+                          opcion.contenido.m !== undefined
+                            ? [{ m: opcion.contenido.m }]
+                            : [{ t: opcion.contenido.t }]
+                        }
+                      />
+                    </button>
+                  ))}
+                </div>
+                {respondida && (
+                  <div
+                    className={
+                      "gr-veredicto" + (opcionElegida.esCorrecta ? "" : " es-fallo")
+                    }
+                  >
+                    <strong>
+                      {opcionElegida.esCorrecta
+                        ? combate.vidaRival === 0
+                          ? "¡Golpe definitivo!"
+                          : "¡Impacto!"
+                        : modo === "individual"
+                          ? "¡Te ha golpeado! Pierdes una vida."
+                          : "¡Fallo! No hay golpe."}
+                    </strong>
+                    <GrTextoConFormulas partes={combate.pregunta.explicacion} />
+                  </div>
+                )}
+                {respondida && (
+                  <div className="gr-botonera">
+                    <button
+                      type="button"
+                      className="gr-boton es-principal"
+                      ref={continuarRef}
+                      onClick={continuar}
+                    >
+                      {combate.vidaRival === 0
+                        ? esJefe
+                          ? "Reclamar la victoria"
+                          : "Volver al mapa"
+                        : modo === "individual" && vidas === 0
+                          ? "Ver el resultado"
+                          : "Continuar"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        } else if (pantalla === "derrota") {
+          contenido = (
+            <div className="gr-pantalla">
+              <p className="gr-rotulo">Fin de la partida</p>
+              <p className="gr-subrotulo">
+                Te has quedado sin vidas, pero los guardianes vencidos siguen
+                vencidos: repasa la explicación de tus fallos y vuelve al
+                combate.
+              </p>
+              <div className="gr-final-cifras">
+                <span className="gr-cifra">
+                  <strong>{puntos}</strong>
+                  <span>puntos</span>
+                </span>
+                <span className="gr-cifra">
+                  <strong>{aciertos}</strong>
+                  <span>aciertos</span>
+                </span>
+                <span className="gr-cifra">
+                  <strong>{fallos}</strong>
+                  <span>fallos</span>
+                </span>
+              </div>
+              <div className="gr-botonera">
+                <button type="button" className="gr-boton es-principal" onClick={reintentar}>
+                  Reintentar el combate
+                </button>
+                <button
+                  type="button"
+                  className="gr-boton es-secundario"
+                  onClick={() => setPantalla("portada")}
+                >
+                  Volver a la portada
+                </button>
+              </div>
+            </div>
+          );
+        } else if (pantalla === "final") {
+          const ganador =
+            marcador[0] === marcador[1] ? -1 : marcador[0] > marcador[1] ? 0 : 1;
+          contenido = (
+            <div className="gr-pantalla">
+              <p className="gr-rotulo gr-parpadeo">¡Unidad superada!</p>
+              <p className="gr-subrotulo">
+                {modo === "individual"
+                  ? "Has derrotado a los seis guardianes y al mismísimo Áleph: la recta real es tuya."
+                  : ganador === -1
+                    ? "¡Empate! Los dos equipos dominan la recta real por igual."
+                    : "Victoria del " + nombresEquipo[ganador].toLowerCase() + ". La recta real tiene nuevos dueños."}
+              </p>
+              {modo === "individual" ? (
+                <div className="gr-final-cifras">
+                  <span className="gr-cifra">
+                    <strong>{puntos}</strong>
+                    <span>puntos</span>
+                  </span>
+                  <span className="gr-cifra">
+                    <strong>{aciertos}</strong>
+                    <span>aciertos</span>
+                  </span>
+                  <span className="gr-cifra">
+                    <strong>{fallos}</strong>
+                    <span>fallos</span>
+                  </span>
+                  <span className="gr-cifra">
+                    <strong>{mejorRacha}</strong>
+                    <span>mejor racha</span>
+                  </span>
+                </div>
+              ) : (
+                <div className="gr-final-cifras">
+                  {nombresEquipo.map((nombre, indice) => (
+                    <span key={nombre} className="gr-cifra">
+                      <strong>{marcador[indice]}</strong>
+                      <span>{nombre}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {modo === "individual" && recordNuevo && (
+                <p className="gr-subrotulo gr-parpadeo">¡Nuevo récord local!</p>
+              )}
+              <div className="gr-botonera">
+                <button
+                  type="button"
+                  className="gr-boton es-principal"
+                  onClick={() => setPantalla("portada")}
+                >
+                  Jugar otra vez
+                </button>
+                {botonSonido}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="componente-interactivo guardianes-juego">
+            <p className="titulo-interactivo">
+              {configuracion.titulo || "Los Guardianes de ℝ"}
+            </p>
+            <p className="instruccion-interactivo">
+              Un torneo de repaso de toda la unidad: responde para golpear,
+              lee la explicación cuando falles y llega hasta el jefe final.
+            </p>
+            {contenido}
+          </div>
+        );
+      }
+
+      const montaje = document.getElementById("guardianes-montaje");
+      const preparado = () =>
+        document.body.classList.add("juego-listo");
+      const fallo = () =>
+        document.body.classList.remove("juego-listo");
+
+      try {
+        ReactDOM.createRoot(montaje).render(
+          <LimiteDeError alFallar={fallo}>
+            <GuardianesRealesInteractivo
+              configuracion={{}}
+              alPreparar={preparado}
+            />
+          </LimiteDeError>
+        );
+      } catch (error) {
+        console.error("No se pudo montar el juego:", error);
+        fallo();
+      }
+    })();
+  </script>
+</body>
+</html>

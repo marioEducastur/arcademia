@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="es-ES">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0e1330">
+  <title>Arcademia · El salón recreativo de las mates</title>
+  <!--
+    Portada de Arcademia: sin dependencias externas (los juegos cargan las
+    suyas fijadas desde jsDelivr; la portada es HTML, CSS y un guion mínimo
+    de JavaScript propio que rota los efectos del neón).
+  -->
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --noche: #0e1330;
+      --noche-suave: #171d42;
+      --plastico: #1b2148;
+      --borde-noche: #2c3467;
+      --neon: #fbbf24;
+      --neon-claro: #fde68a;
+      --neon-cian: #38e0f0;
+      --tinta-clara: #e2e8f0;
+      --tinta-media: #c7d2fe;
+      --tinta-suave: #8b95c9;
+      --etiqueta: #f6f8fc;
+      --tinta-oscura: #172033;
+      --violeta: #a78bfa;
+      --curso-bach1: #a78bfa;
+      --curso-bach2: #7dd3fc;
+      --curso-eso: #6ee7b7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--noche);
+    }
+
+    body {
+      min-width: 0;
+      margin: 0;
+      color: var(--tinta-clara);
+      background:
+        radial-gradient(
+          70rem 30rem at 50% -6rem,
+          rgb(167 139 250 / 0.14),
+          transparent 60%
+        ),
+        linear-gradient(180deg, #0a0e24 0%, var(--noche) 30%, #0c1029 100%);
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+        Arial, sans-serif;
+      font-size: 1.035rem;
+      line-height: 1.7;
+    }
+
+    /* Cielo estrellado de píxeles, fijo y sutil, detrás de todo. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        radial-gradient(rgb(199 210 254 / 0.4) 1px, transparent 1.5px),
+        radial-gradient(rgb(251 191 36 / 0.3) 1px, transparent 1.5px),
+        radial-gradient(rgb(56 224 240 / 0.28) 1px, transparent 1.5px);
+      background-size:
+        190px 170px,
+        230px 210px,
+        310px 260px;
+      background-position:
+        12px 24px,
+        84px 118px,
+        150px 60px;
+      pointer-events: none;
+    }
+
+    :focus-visible {
+      outline: 0.2rem solid var(--neon);
+      outline-offset: 0.16rem;
+      box-shadow: 0 0 0 0.12rem var(--noche);
+    }
+
+    .rotulos-arcade,
+    .estante h2,
+    .boton-jugar,
+    .chip-curso {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    .interior {
+      width: min(100%, 68rem);
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
+    }
+
+    /* ---- Marquesina ---- */
+
+    .marquesina {
+      position: relative;
+      margin: clamp(1.2rem, 4vw, 2.6rem) auto 0;
+      padding: clamp(1.6rem, 5vw, 2.8rem) clamp(1rem, 4vw, 3rem);
+      text-align: center;
+      border: 3px solid var(--borde-noche);
+      border-radius: 1.4rem;
+      background:
+        linear-gradient(180deg, #131843 0%, #0d1130 100%);
+      box-shadow:
+        0 0 0 6px #090c1e,
+        0 18px 50px rgb(0 0 0 / 0.5),
+        inset 0 0 60px rgb(251 191 36 / 0.05);
+      overflow: hidden;
+    }
+
+    /* Orlas de bombillas: dos filas punteadas que alternan su brillo. */
+    .marquesina::before,
+    .marquesina::after {
+      content: "";
+      position: absolute;
+      left: 0.9rem;
+      right: 0.9rem;
+      height: 0.55rem;
+      background-image:
+        radial-gradient(
+          circle at 0.275rem 50%,
+          var(--neon-claro) 0 0.16rem,
+          rgb(251 191 36 / 0.28) 0.24rem,
+          transparent 0.3rem
+        );
+      background-size: 1.4rem 100%;
+      background-repeat: repeat-x;
+      animation: bombillas 1.6s steps(2, jump-none) infinite;
+    }
+
+    .marquesina::before {
+      top: 0.55rem;
+    }
+
+    .marquesina::after {
+      bottom: 0.55rem;
+      animation-delay: 0.8s;
+    }
+
+    @keyframes bombillas {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.35;
+      }
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    .letras-marquesina {
+      display: block;
+      width: min(100%, 38rem);
+      margin: 0 auto;
+    }
+
+    /* El juego de palabras: ARCADE en cian y el remate de ACADEMIA en
+       ámbar, cada mitad con su propio halo de neón. */
+    .letras-arcade {
+      fill: var(--neon-cian);
+      filter:
+        drop-shadow(0 0 6px rgb(56 224 240 / 0.9))
+        drop-shadow(0 0 18px rgb(56 224 240 / 0.45))
+        drop-shadow(0 0 42px rgb(56 224 240 / 0.25));
+    }
+
+    .letras-mia {
+      fill: var(--neon);
+      filter:
+        drop-shadow(0 0 6px rgb(251 191 36 / 0.9))
+        drop-shadow(0 0 18px rgb(251 191 36 / 0.45))
+        drop-shadow(0 0 42px rgb(251 191 36 / 0.25));
+    }
+
+    /* Efectos del neón: un guion mínimo va rotando la clase de efecto
+       cada pocos segundos. Con movimiento reducido, el letrero queda
+       encendido fijo (la regla global anula las animaciones). */
+    .efecto-persecucion .letra {
+      animation: letra-persecucion 2.7s linear infinite;
+      animation-delay: calc(var(--i) * 0.3s);
+    }
+
+    @keyframes letra-persecucion {
+      0% {
+        opacity: 0.4;
+      }
+      10% {
+        opacity: 1;
+      }
+      28% {
+        opacity: 0.4;
+      }
+      100% {
+        opacity: 0.4;
+      }
+    }
+
+    .efecto-destello .letra {
+      animation: letra-destello 4.2s steps(1, end) infinite;
+      animation-delay: calc(var(--i) * 0.35s);
+    }
+
+    @keyframes letra-destello {
+      0% {
+        opacity: 1;
+      }
+      7% {
+        opacity: 0.35;
+      }
+      9% {
+        opacity: 1;
+      }
+      44% {
+        opacity: 1;
+      }
+      46% {
+        opacity: 0.55;
+      }
+      48% {
+        opacity: 1;
+      }
+      81% {
+        opacity: 1;
+      }
+      83% {
+        opacity: 0.3;
+      }
+      86% {
+        opacity: 1;
+      }
+    }
+
+    .efecto-latido .letra {
+      animation: letra-latido 2.4s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.08s);
+    }
+
+    @keyframes letra-latido {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.65;
+      }
+    }
+
+    .lema {
+      margin: 1rem 0 0;
+      color: var(--tinta-media);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: clamp(0.78rem, 2.6vw, 0.95rem);
+    }
+
+    .rotulos-arcade {
+      margin: 0.2rem 0 0;
+      color: var(--tinta-suave);
+      font-size: 0.85rem;
+      animation: parpadeo-insert 2.4s steps(1, end) infinite;
+    }
+
+    @keyframes parpadeo-insert {
+      0% {
+        opacity: 1;
+      }
+      70% {
+        opacity: 0.25;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    /* Líneas de barrido de un monitor CRT sobre la marquesina. */
+    .lineas-crt {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: repeating-linear-gradient(
+        180deg,
+        rgb(6 8 20 / 0.22) 0 2px,
+        transparent 2px 5px
+      );
+      pointer-events: none;
+    }
+
+    /* ---- Estanterías ---- */
+
+    main {
+      padding: clamp(1.6rem, 5vw, 3rem) 0 2rem;
+    }
+
+    .estante {
+      margin: 0 0 clamp(1.8rem, 5vw, 2.6rem);
+      padding: 1.1rem 1.2rem 1.3rem;
+      border: 1px solid var(--borde-noche);
+      border-radius: 1rem;
+      background: linear-gradient(180deg, var(--noche-suave), #12173a);
+      box-shadow:
+        0 14px 30px rgb(0 0 0 / 0.35),
+        inset 0 -0.7rem 0 #0a0e24;
+    }
+
+    .estante h2 {
+      display: inline-block;
+      margin: 0 0 0.9rem;
+      padding: 0.28rem 0.85rem;
+      color: var(--neon-claro);
+      border: 1px solid rgb(251 191 36 / 0.4);
+      border-radius: 0.5rem;
+      background: rgb(251 191 36 / 0.07);
+      box-shadow: 0 0 14px rgb(251 191 36 / 0.14);
+      font-size: 1.02rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .estante-rejilla {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+      gap: 1.1rem;
+    }
+
+    /* ---- Cartuchos ---- */
+
+    .cartucho {
+      position: relative;
+      max-width: 19rem;
+      padding: 0.65rem 0.7rem 0.8rem;
+      border: 1px solid #343d78;
+      border-radius: 0.9rem 0.9rem 0.65rem 0.65rem;
+      background:
+        linear-gradient(180deg, #232a5c 0%, var(--plastico) 100%);
+      box-shadow:
+        0 10px 24px rgb(0 0 0 / 0.4),
+        inset 0 2px 0 rgb(255 255 255 / 0.06);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .cartucho:hover,
+    .cartucho:focus-within {
+      transform: translateY(-3px);
+      box-shadow:
+        0 0 0 2px rgb(251 191 36 / 0.55),
+        0 0 26px rgb(251 191 36 / 0.28),
+        0 14px 28px rgb(0 0 0 / 0.45);
+    }
+
+    /* Estrías superiores del cartucho */
+    .cartucho::before {
+      content: "";
+      display: block;
+      height: 0.5rem;
+      margin: 0 1.2rem 0.55rem;
+      border-radius: 0 0 0.3rem 0.3rem;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #3a4487 0 0.5rem,
+          #232a5c 0.5rem 0.9rem
+        );
+    }
+
+    .etiqueta-cartucho {
+      padding: 0.6rem 0.7rem 0.7rem;
+      border-radius: 0.5rem;
+      border-top: 0.4rem solid var(--curso, var(--violeta));
+      background: #131843;
+      color: var(--tinta-clara);
+      box-shadow: inset 0 0 0 1px var(--borde-noche);
+    }
+
+    .cartucho h3 {
+      margin: 0 0 0.4rem;
+      color: var(--neon-claro);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.94rem;
+      letter-spacing: 0.04em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .chips-cartucho {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0 0 0.75rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    .chips-cartucho li {
+      padding: 0.08rem 0.55rem;
+      border-radius: 1rem;
+      font-size: 0.8rem;
+    }
+
+    .chip-curso {
+      color: var(--curso, var(--violeta));
+      border: 1.5px solid var(--curso, var(--violeta));
+      background: rgb(0 0 0 / 0.25);
+      font-weight: 700;
+    }
+
+    .chip-tema {
+      color: var(--tinta-media);
+      border: 1px solid #333b6e;
+      background: rgb(0 0 0 / 0.25);
+    }
+
+    .acciones-cartucho {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.9rem;
+      align-items: center;
+    }
+
+    .boton-jugar {
+      display: inline-block;
+      padding: 0.42rem 1.1rem;
+      color: #241a05;
+      border: 2px solid #92710d;
+      border-radius: 0.55rem;
+      background: linear-gradient(180deg, var(--neon-claro), var(--neon));
+      box-shadow: 0 4px 10px rgb(251 191 36 / 0.35);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .boton-jugar:hover,
+    .boton-jugar:focus-visible {
+      background: linear-gradient(180deg, #fff3c4, var(--neon-claro));
+      box-shadow: 0 6px 14px rgb(251 191 36 / 0.5);
+    }
+
+    /* ---- Ranura vacía ---- */
+
+    .ranura-vacia {
+      display: grid;
+      place-items: center;
+      min-height: 7.5rem;
+      max-width: 26rem;
+      padding: 1rem;
+      color: var(--tinta-suave);
+      border: 2px dashed #333b6e;
+      border-radius: 0.9rem;
+      background: rgb(10 14 36 / 0.5);
+      text-align: center;
+      font-size: 0.92rem;
+    }
+
+    /* ---- Pie ---- */
+
+    footer {
+      padding: 1.4rem 0 2.4rem;
+      color: var(--tinta-suave);
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
+    footer a {
+      color: var(--tinta-media);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="interior">
+    <div class="marquesina">
+      <h1>
+        <svg class="letras-marquesina" viewBox="0 0 610 70" role="img" aria-label="ARCADEMIA" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+          <g class="letras-arcade">
+            <g class="letra" style="--i: 0">
+              <rect x="10" y="0" width="9" height="9" rx="1.5"/><rect x="20" y="0" width="9" height="9" rx="1.5"/><rect x="30" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="0" y="10" width="9" height="9" rx="1.5"/><rect x="40" y="10" width="9" height="9" rx="1.5"/><rect x="0" y="20" width="9" height="9" rx="1.5"/>
+              <rect x="40" y="20" width="9" height="9" rx="1.5"/><rect x="0" y="30" width="9" height="9" rx="1.5"/><rect x="10" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="20" y="30" width="9" height="9" rx="1.5"/><rect x="30" y="30" width="9" height="9" rx="1.5"/><rect x="40" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="0" y="40" width="9" height="9" rx="1.5"/><rect x="40" y="40" width="9" height="9" rx="1.5"/><rect x="0" y="50" width="9" height="9" rx="1.5"/>
+              <rect x="40" y="50" width="9" height="9" rx="1.5"/><rect x="0" y="60" width="9" height="9" rx="1.5"/><rect x="40" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 1">
+              <rect x="70" y="0" width="9" height="9" rx="1.5"/><rect x="80" y="0" width="9" height="9" rx="1.5"/><rect x="90" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="100" y="0" width="9" height="9" rx="1.5"/><rect x="70" y="10" width="9" height="9" rx="1.5"/><rect x="110" y="10" width="9" height="9" rx="1.5"/>
+              <rect x="70" y="20" width="9" height="9" rx="1.5"/><rect x="110" y="20" width="9" height="9" rx="1.5"/><rect x="70" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="80" y="30" width="9" height="9" rx="1.5"/><rect x="90" y="30" width="9" height="9" rx="1.5"/><rect x="100" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="70" y="40" width="9" height="9" rx="1.5"/><rect x="90" y="40" width="9" height="9" rx="1.5"/><rect x="70" y="50" width="9" height="9" rx="1.5"/>
+              <rect x="100" y="50" width="9" height="9" rx="1.5"/><rect x="70" y="60" width="9" height="9" rx="1.5"/><rect x="110" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 2">
+              <rect x="150" y="0" width="9" height="9" rx="1.5"/><rect x="160" y="0" width="9" height="9" rx="1.5"/><rect x="170" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="140" y="10" width="9" height="9" rx="1.5"/><rect x="180" y="10" width="9" height="9" rx="1.5"/><rect x="140" y="20" width="9" height="9" rx="1.5"/>
+              <rect x="140" y="30" width="9" height="9" rx="1.5"/><rect x="140" y="40" width="9" height="9" rx="1.5"/><rect x="140" y="50" width="9" height="9" rx="1.5"/>
+              <rect x="180" y="50" width="9" height="9" rx="1.5"/><rect x="150" y="60" width="9" height="9" rx="1.5"/><rect x="160" y="60" width="9" height="9" rx="1.5"/>
+              <rect x="170" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 3">
+              <rect x="220" y="0" width="9" height="9" rx="1.5"/><rect x="230" y="0" width="9" height="9" rx="1.5"/><rect x="240" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="210" y="10" width="9" height="9" rx="1.5"/><rect x="250" y="10" width="9" height="9" rx="1.5"/><rect x="210" y="20" width="9" height="9" rx="1.5"/>
+              <rect x="250" y="20" width="9" height="9" rx="1.5"/><rect x="210" y="30" width="9" height="9" rx="1.5"/><rect x="220" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="230" y="30" width="9" height="9" rx="1.5"/><rect x="240" y="30" width="9" height="9" rx="1.5"/><rect x="250" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="210" y="40" width="9" height="9" rx="1.5"/><rect x="250" y="40" width="9" height="9" rx="1.5"/><rect x="210" y="50" width="9" height="9" rx="1.5"/>
+              <rect x="250" y="50" width="9" height="9" rx="1.5"/><rect x="210" y="60" width="9" height="9" rx="1.5"/><rect x="250" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 4">
+              <rect x="280" y="0" width="9" height="9" rx="1.5"/><rect x="290" y="0" width="9" height="9" rx="1.5"/><rect x="300" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="310" y="0" width="9" height="9" rx="1.5"/><rect x="280" y="10" width="9" height="9" rx="1.5"/><rect x="320" y="10" width="9" height="9" rx="1.5"/>
+              <rect x="280" y="20" width="9" height="9" rx="1.5"/><rect x="320" y="20" width="9" height="9" rx="1.5"/><rect x="280" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="320" y="30" width="9" height="9" rx="1.5"/><rect x="280" y="40" width="9" height="9" rx="1.5"/><rect x="320" y="40" width="9" height="9" rx="1.5"/>
+              <rect x="280" y="50" width="9" height="9" rx="1.5"/><rect x="320" y="50" width="9" height="9" rx="1.5"/><rect x="280" y="60" width="9" height="9" rx="1.5"/>
+              <rect x="290" y="60" width="9" height="9" rx="1.5"/><rect x="300" y="60" width="9" height="9" rx="1.5"/><rect x="310" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 5">
+              <rect x="350" y="0" width="9" height="9" rx="1.5"/><rect x="360" y="0" width="9" height="9" rx="1.5"/><rect x="370" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="380" y="0" width="9" height="9" rx="1.5"/><rect x="390" y="0" width="9" height="9" rx="1.5"/><rect x="350" y="10" width="9" height="9" rx="1.5"/>
+              <rect x="350" y="20" width="9" height="9" rx="1.5"/><rect x="350" y="30" width="9" height="9" rx="1.5"/><rect x="360" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="370" y="30" width="9" height="9" rx="1.5"/><rect x="380" y="30" width="9" height="9" rx="1.5"/><rect x="350" y="40" width="9" height="9" rx="1.5"/>
+              <rect x="350" y="50" width="9" height="9" rx="1.5"/><rect x="350" y="60" width="9" height="9" rx="1.5"/><rect x="360" y="60" width="9" height="9" rx="1.5"/>
+              <rect x="370" y="60" width="9" height="9" rx="1.5"/><rect x="380" y="60" width="9" height="9" rx="1.5"/><rect x="390" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+          </g>
+          <g class="letras-mia">
+            <g class="letra" style="--i: 6">
+              <rect x="420" y="0" width="9" height="9" rx="1.5"/><rect x="460" y="0" width="9" height="9" rx="1.5"/><rect x="420" y="10" width="9" height="9" rx="1.5"/>
+              <rect x="430" y="10" width="9" height="9" rx="1.5"/><rect x="450" y="10" width="9" height="9" rx="1.5"/><rect x="460" y="10" width="9" height="9" rx="1.5"/>
+              <rect x="420" y="20" width="9" height="9" rx="1.5"/><rect x="440" y="20" width="9" height="9" rx="1.5"/><rect x="460" y="20" width="9" height="9" rx="1.5"/>
+              <rect x="420" y="30" width="9" height="9" rx="1.5"/><rect x="440" y="30" width="9" height="9" rx="1.5"/><rect x="460" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="420" y="40" width="9" height="9" rx="1.5"/><rect x="460" y="40" width="9" height="9" rx="1.5"/><rect x="420" y="50" width="9" height="9" rx="1.5"/>
+              <rect x="460" y="50" width="9" height="9" rx="1.5"/><rect x="420" y="60" width="9" height="9" rx="1.5"/><rect x="460" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 7">
+              <rect x="490" y="0" width="9" height="9" rx="1.5"/><rect x="500" y="0" width="9" height="9" rx="1.5"/><rect x="510" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="520" y="0" width="9" height="9" rx="1.5"/><rect x="530" y="0" width="9" height="9" rx="1.5"/><rect x="510" y="10" width="9" height="9" rx="1.5"/>
+              <rect x="510" y="20" width="9" height="9" rx="1.5"/><rect x="510" y="30" width="9" height="9" rx="1.5"/><rect x="510" y="40" width="9" height="9" rx="1.5"/>
+              <rect x="510" y="50" width="9" height="9" rx="1.5"/><rect x="490" y="60" width="9" height="9" rx="1.5"/><rect x="500" y="60" width="9" height="9" rx="1.5"/>
+              <rect x="510" y="60" width="9" height="9" rx="1.5"/><rect x="520" y="60" width="9" height="9" rx="1.5"/><rect x="530" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+            <g class="letra" style="--i: 8">
+              <rect x="570" y="0" width="9" height="9" rx="1.5"/><rect x="580" y="0" width="9" height="9" rx="1.5"/><rect x="590" y="0" width="9" height="9" rx="1.5"/>
+              <rect x="560" y="10" width="9" height="9" rx="1.5"/><rect x="600" y="10" width="9" height="9" rx="1.5"/><rect x="560" y="20" width="9" height="9" rx="1.5"/>
+              <rect x="600" y="20" width="9" height="9" rx="1.5"/><rect x="560" y="30" width="9" height="9" rx="1.5"/><rect x="570" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="580" y="30" width="9" height="9" rx="1.5"/><rect x="590" y="30" width="9" height="9" rx="1.5"/><rect x="600" y="30" width="9" height="9" rx="1.5"/>
+              <rect x="560" y="40" width="9" height="9" rx="1.5"/><rect x="600" y="40" width="9" height="9" rx="1.5"/><rect x="560" y="50" width="9" height="9" rx="1.5"/>
+              <rect x="600" y="50" width="9" height="9" rx="1.5"/><rect x="560" y="60" width="9" height="9" rx="1.5"/><rect x="600" y="60" width="9" height="9" rx="1.5"/>
+            </g>
+          </g>
+        </svg>
+      </h1>
+      <p class="lema">El salón recreativo de las mates</p>
+      <p class="rotulos-arcade" aria-hidden="true">
+        ★ insert coin ★ pulsa jugar ★
+      </p>
+      <div class="lineas-crt" aria-hidden="true"></div>
+    </div>
+  </header>
+
+  <main class="interior">
+    <section class="estante" aria-labelledby="eso1">
+      <h2 id="eso1">1.º ESO</h2>
+      <div class="estante-rejilla">
+        <article class="cartucho" style="--curso: var(--curso-eso)">
+          <div class="etiqueta-cartucho">
+            <h3>La Torre de los Enteros</h3>
+            <ul class="chips-cartucho">
+              <li class="chip-curso">1.º ESO</li>
+              <li class="chip-tema">Números enteros</li>
+            </ul>
+            <div class="acciones-cartucho">
+              <a
+                class="boton-jugar"
+                href="juegos/eso-1/torre-de-los-enteros.html"
+                aria-label="Jugar a La Torre de los Enteros">
+                Jugar
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="eso2">
+      <h2 id="eso2">2.º ESO</h2>
+      <div class="estante-rejilla">
+        <p class="ranura-vacia">
+          Próximamente: esta estantería espera sus primeros cartuchos.
+        </p>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="eso3">
+      <h2 id="eso3">3.º ESO</h2>
+      <div class="estante-rejilla">
+        <p class="ranura-vacia">
+          Próximamente: esta estantería espera sus primeros cartuchos.
+        </p>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="eso4">
+      <h2 id="eso4">4.º ESO</h2>
+      <div class="estante-rejilla">
+        <p class="ranura-vacia">
+          Próximamente: esta estantería espera sus primeros cartuchos.
+        </p>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="bach1">
+      <h2 id="bach1">1.º Bachillerato</h2>
+      <div class="estante-rejilla">
+        <article class="cartucho" style="--curso: var(--curso-bach1)">
+          <div class="etiqueta-cartucho">
+            <h3>Los Guardianes de ℝ</h3>
+            <ul class="chips-cartucho">
+              <li class="chip-curso">1.º Bach.</li>
+              <li class="chip-tema">Números reales</li>
+            </ul>
+            <div class="acciones-cartucho">
+              <a
+                class="boton-jugar"
+                href="juegos/bachillerato-1/guardianes-de-r.html"
+                aria-label="Jugar a Los Guardianes de ℝ">
+                Jugar
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="cartucho" style="--curso: var(--curso-bach1)">
+          <div class="etiqueta-cartucho">
+            <h3>El Grimorio de las Transformaciones</h3>
+            <ul class="chips-cartucho">
+              <li class="chip-curso">1.º Bach.</li>
+              <li class="chip-tema">Ecuaciones (Álgebra)</li>
+            </ul>
+            <div class="acciones-cartucho">
+              <a
+                class="boton-jugar"
+                href="juegos/bachillerato-1/grimorio-transformaciones.html"
+                aria-label="Jugar a El Grimorio de las Transformaciones">
+                Jugar
+              </a>
+            </div>
+          </div>
+        </article>
+        <article class="cartucho" style="--curso: var(--curso-bach1)">
+          <div class="etiqueta-cartucho">
+            <h3>Órbita Gauss</h3>
+            <ul class="chips-cartucho">
+              <li class="chip-curso">1.º Bach.</li>
+              <li class="chip-tema">Sistemas de ecuaciones (Álgebra)</li>
+            </ul>
+            <div class="acciones-cartucho">
+              <a
+                class="boton-jugar"
+                href="juegos/bachillerato-1/orbita-gauss.html"
+                aria-label="Jugar a Órbita Gauss">
+                Jugar
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="bach2">
+      <h2 id="bach2">2.º Bachillerato</h2>
+      <div class="estante-rejilla">
+        <p class="ranura-vacia">
+          Próximamente: esta estantería espera sus primeros cartuchos.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="interior">
+    <p>
+      Los juegos acompañan a los
+      <a href="https://marioeducastur.github.io/mat1/">apuntes de
+      Matemáticas</a>. Cada cartucho enlaza la unidad donde se aprende su
+      tema.
+    </p>
+  </footer>
+
+  <script>
+    (() => {
+      const letrero = document.querySelector(".letras-marquesina");
+      if (!letrero) {
+        return;
+      }
+      const efectos = [
+        "efecto-persecucion",
+        "efecto-destello",
+        "efecto-latido"
+      ];
+      let actual = 0;
+      letrero.classList.add(efectos[actual]);
+      const reducido = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      );
+      if (reducido.matches) {
+        return;
+      }
+      window.setInterval(() => {
+        letrero.classList.remove(efectos[actual]);
+        actual = (actual + 1) % efectos.length;
+        letrero.classList.add(efectos[actual]);
+      }, 9000);
+    })();
+  </script>
+</body>
+</html>
