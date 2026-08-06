@@ -107,6 +107,113 @@ Enlaces «Aprende esto en…» hacia los apuntes:
 
 ## Registro breve
 
+- **2026-08-06 (publicación de las mejoras del Grimorio):** por orden
+  expresa del profesor («Hac commit y push después de corregir eso»),
+  tras el último retoque: **la columna del mazo reserva solo la altura
+  que necesita** (mín. 14,2 rem con la pila vacía y `minHeight` en línea
+  que suma 1,7 rem por carta apilada extra), con lo que el marcador
+  luminoso sube y desaparece el hueco muerto que señaló el profesor
+  (tablero: de ~298 px a 227 px con el mazo vacío; verificado también el
+  crecimiento a 2 cartas, 0 errores KaTeX y 375 px sin desbordes). Con
+  este commit viajan las **cuatro tandas pendientes** de las entradas
+  anteriores: naipes con arte, mesa de destilación + marcador, juego a
+  ciegas + mazo, y clic directo + manos barajadas + pozo de trampas +
+  exponente real. Las entradas siguientes marcadas «SIN COMMIT» quedan
+  publicadas con este empuje.
+
+- **2026-08-06 (clic directo, manos barajadas y mazo a tamaño real; SIN
+  COMMIT, pendiente de orden):** cuarta tanda de peticiones del profesor
+  sobre el Grimorio, la primera que toca jugabilidad de verdad:
+  (1) **jugar al pulsar** — desaparece el panel de confirmación
+  («Jugar la carta»/«Devolverla»); `jugarCarta(carta, indice)` se llama
+  desde el clic del naipe, si acierta avanza y si no, tropiezo con su
+  lección; (2) **manos siempre de 3 cartas y barajadas** — nuevo pozo
+  `GM_TRAMPAS_COMUNES` (5 errores clásicos universalmente ilegales, con
+  lección propia y arte: tachar la x, cambiar el signo a un lado, quitar
+  paréntesis sin multiplicar, sustituir x por 0, derivar) que rellena
+  las manos cortas vía `gmEnriquecerSala` + `gmBarajarCartas` aplicado
+  en `cargarSala` y en el estado inicial: ya no hay manos de 1 carta ni
+  posiciones fijas que delaten; (3) **primera ecuación aleatoria** — el
+  estado inicial elige variante al azar (antes siempre `x(x+1)=6`);
+  (4) **naipes del mazo al mismo tamaño y ratio que los de la mano**
+  (160×195 de contenido); (5) **«Cambio z = 3^x» se muestra con
+  exponente real** vía `GmNombreCarta` (el dato interno no cambia).
+  Verificación: barrido jsc nuevo de manos enriquecidas (38.000 salas,
+  610.001 comprobaciones, 0 fallos: 3 cartas únicas por mano, una sola
+  que avanza, extras siempre trampa con lección, y el barajado varía la
+  primera carta en las 19 variantes) y partida a ciegas completa
+  (10/10 juicios, 76 puntos, primera ecuación distinta de la fija,
+  exponente renderizado, 0 errores KaTeX, 375 px sin desbordes).
+  Cuidado aprendido: con el panel del navegador **oculto**
+  (`visibilityState: hidden`) las animaciones CSS se congelan en su
+  fotograma inicial y `getBoundingClientRect` mide el vuelo, no el
+  reposo: para medir geometría, desactivar la animación o dar por bueno
+  el estado sin animación. **Sigue pendiente la orden expresa de
+  commit/push** (naipes + mesa/marcador + mazo a ciegas + esta tanda).
+
+- **2026-08-06 (juego a ciegas y mazo; SIN COMMIT, pendiente de orden):**
+  tercera petición del profesor sobre el Grimorio, y esta sí cambia la
+  experiencia de juego (no la matemática): (1) **el panel de selección
+  ya no delata nada** — antes las trampas mostraban «no parece encajar»
+  y solo las cartas buenas enseñaban previsualización, una doble pista;
+  ahora todas las cartas muestran el mismo texto neutro y **no hay
+  previsualización antes de jugar**: se juega a ciegas, el tropiezo
+  ocurre, y la explicación de por qué no encajaba llega después con el
+  «La carta rebota: …» de siempre; (2) **mazo de jugadas** a la derecha
+  de la mano (`.gm-tablero` = mano + `.gm-mazo`): las cartas jugadas
+  vuelan con una animación de vuelo y giro y quedan apiladas ladeadas
+  con su arte y su nombre, con hueco punteado cuando está vacío.
+  Truco de implementación: el mazo se **deriva sin estado nuevo**
+  (`cartasJugadas` a partir de `pasoIdx`), porque el barrido jsc
+  garantizó que el camino de cada cámara es único y consecutivo; la
+  animación de entrada la dispara el montaje de cada carta nueva.
+  Verificado con una **partida honesta a ciegas** (probando cartas como
+  un alumno, sin leer pistas del DOM): 10/10 juicios, 98 puntos con
+  1 tropiezo, mazo llegando a 3 cartas, lección visible tras el
+  tropiezo, contador rojo subiendo en vivo, récord anterior (100)
+  conservado, 0 errores KaTeX y 375 px sin desbordes. Nota: el conductor
+  de partidas antiguo identificaba trampas por el texto del panel; ya no
+  existe — los conductores futuros deben jugar a ciegas o leer la fibra.
+  **Sigue pendiente la orden expresa de commit/push** (naipes + mesa y
+  marcador + esto).
+
+- **2026-08-06 (mesa y marcador del Grimorio; SIN COMMIT, pendiente de
+  orden):** segunda petición estética del profesor sobre el Grimorio,
+  también solo capa de vista: (1) la ecuación en curso vive ahora en la
+  **«Mesa de destilación»** (`.gm-mesa`): atril con borde degradado de
+  neón violeta-cian-ámbar animado y pulso de halo (quietos con
+  `prefers-reduced-motion` por la regla global), rótulo en píldora y la
+  fórmula en grande sobre pantalla encendida; (2) la nota de texto de
+  jugadas se sustituye por un **marcador luminoso** (`.gm-marcador`) de
+  tres celdas LED — jugadas·par en ámbar, tropiezos en rojo, espectros
+  en violeta, ceros barrados monoespaciados — cuyas cifras dan un
+  destello al cambiar (remontaje por `key` + animación). El resumen de
+  la cámara sellada conserva su texto original. Verificado: partida
+  completa 10/10 (98 puntos) con el contador de tropiezos visto pasar de
+  0/0/0 a 0/1/0 en vivo, 0 errores KaTeX, 375 px sin desbordes.
+  **Sigue pendiente la orden expresa de commit/push** (junto con los
+  naipes de la entrada anterior).
+
+- **2026-08-06 (naipes del Grimorio; SIN COMMIT, pendiente de orden):** a
+  petición del profesor, las cartas del Grimorio son ahora naipes de
+  verdad: cuerpo de carta con marco interior dorado y esquinas ✦,
+  ventana de arte con un **pictograma matemático por transformación**
+  (mapa `GM_ARTE` + `gmArteDeCarta`, dibujado con KaTeX y `aria-hidden`;
+  depende SOLO del nombre para no delatar las trampas), banda inferior
+  con el nombre, abanico sutil en la mano (se endereza con foco o
+  selección) y las peligrosas selladas con **⚠ además del borde rojo**
+  (el color deja de ser la única señal; la instrucción del juego se
+  actualizó igual). Cambios solo de vista: constructores y lógica
+  intactos. Los parches se aplicaron in situ sobre el HTML ensamblado
+  (los intermedios del scratchpad no sobreviven entre sesiones; el
+  archivo del proyecto es la fuente de verdad). Incidencia y lección: un
+  `cat` con las piezas ya inexistentes truncó el HTML por la
+  redirección; se restauró íntegro con `git checkout --` — primer
+  rescate gracias al repo. Verificado: partida completa 10/10 con 100
+  puntos, 33 artes dibujadas, 3 peligrosas con sello, 0 errores KaTeX y
+  375 px sin desbordes. **Falta la orden expresa de commit/push para
+  llevarlo a producción.**
+
 - **2026-08-06 00:43 CEST (publicación):** por orden expresa del profesor
   («haz push/commit… y la estructura en Drive»): repositorio
   `marioEducastur/arcademia` creado (público), **commit inicial

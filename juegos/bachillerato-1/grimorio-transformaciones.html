@@ -678,6 +678,399 @@
       border: 1px solid #8b5cf6;
       background: rgb(139 92 246 / 0.16);
     }
+
+    /* ---- Las cartas del Grimorio, como naipes arcanos ---- */
+
+    .gm-mano {
+      gap: 0.9rem;
+      align-items: stretch;
+    }
+
+    .gm-carta {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 9.6rem;
+      min-height: 12.2rem;
+      padding: 0.5rem 0.5rem 0.35rem;
+      border: 2px solid #3a4487;
+      border-radius: 0.85rem;
+      background:
+        radial-gradient(
+          120% 90% at 50% 0%,
+          #232a5c 0%,
+          #171d42 55%,
+          #10142f 100%
+        );
+      box-shadow:
+        0 6px 14px rgb(0 0 0 / 0.45),
+        inset 0 0 0 1px rgb(251 191 36 / 0.18);
+      color: #e2e8f0;
+      transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    /* La mano se abre en un abanico sutil que se endereza al elegir. */
+    .gm-mano .gm-carta:nth-child(odd) {
+      transform: rotate(-1.4deg);
+    }
+
+    .gm-mano .gm-carta:nth-child(even) {
+      transform: rotate(1.2deg);
+    }
+
+    .gm-mano .gm-carta:hover,
+    .gm-mano .gm-carta:focus-visible {
+      transform: translateY(-6px) rotate(0deg);
+      border-color: #fbbf24;
+      color: #e2e8f0;
+      background:
+        radial-gradient(
+          120% 90% at 50% 0%,
+          #283066 0%,
+          #1b2148 55%,
+          #131843 100%
+        );
+      box-shadow:
+        0 10px 22px rgb(0 0 0 / 0.5),
+        0 0 18px rgb(251 191 36 / 0.3),
+        inset 0 0 0 1px rgb(251 191 36 / 0.3);
+    }
+
+    .gm-mano .gm-carta[aria-pressed="true"] {
+      transform: translateY(-8px) rotate(0deg);
+      border-color: #a78bfa;
+      box-shadow:
+        0 0 0 2px #a78bfa,
+        0 0 22px rgb(167 139 250 / 0.5),
+        0 10px 22px rgb(0 0 0 / 0.5);
+    }
+
+    .gm-carta-marco {
+      position: relative;
+      display: grid;
+      flex: 1 1 auto;
+      margin: 0.1rem 0.1rem 0.4rem;
+      place-items: center;
+      border: 1px solid rgb(251 191 36 / 0.4);
+      border-radius: 0.55rem;
+      background:
+        radial-gradient(
+          80% 80% at 50% 45%,
+          rgb(56 224 240 / 0.1),
+          transparent 70%
+        ),
+        #0a0e24;
+      color: #fde68a;
+      overflow: hidden;
+    }
+
+    .gm-carta-marco .katex {
+      font-size: 1.3em;
+    }
+
+    .gm-carta-marco::before,
+    .gm-carta-marco::after {
+      content: "✦";
+      position: absolute;
+      color: rgb(251 191 36 / 0.55);
+      font-size: 0.62rem;
+      line-height: 1;
+    }
+
+    .gm-carta-marco::before {
+      top: 0.2rem;
+      left: 0.32rem;
+    }
+
+    .gm-carta-marco::after {
+      right: 0.32rem;
+      bottom: 0.2rem;
+    }
+
+    .gm-carta-nombre {
+      display: block;
+      padding: 0.25rem 0.2rem 0.2rem;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.92rem;
+      line-height: 1.3;
+    }
+
+    .gm-carta.gm-peligrosa {
+      border-color: #f87171;
+      box-shadow:
+        0 6px 14px rgb(0 0 0 / 0.45),
+        inset 0 0 0 1px rgb(248 113 113 / 0.35);
+    }
+
+    .gm-carta.gm-peligrosa .gm-carta-marco {
+      border-color: rgb(248 113 113 / 0.5);
+      color: #fecaca;
+    }
+
+    /* Las peligrosas llevan sello ⚠ además del borde rojo: el color
+       nunca es la única señal. */
+    .gm-carta.gm-peligrosa .gm-carta-marco::before,
+    .gm-carta.gm-peligrosa .gm-carta-marco::after {
+      content: "⚠";
+      color: rgb(248 113 113 / 0.85);
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 26rem) {
+      .gm-carta {
+        width: 100%;
+        min-height: 8.6rem;
+      }
+
+      .gm-carta-marco {
+        min-height: 4.6rem;
+      }
+    }
+
+    /* ---- Mesa de destilación: la ecuación en curso, encendida ---- */
+
+    .gm-mesa {
+      position: relative;
+      margin: 1.2rem 0 0;
+      padding: 2px;
+      border-radius: 0.95rem;
+      background:
+        linear-gradient(
+          120deg,
+          #7c3aed,
+          #38e0f0 35%,
+          #fbbf24 65%,
+          #7c3aed
+        );
+      background-size: 300% 300%;
+      animation:
+        gm-mesa-brillo 7s linear infinite,
+        gm-mesa-pulso 3.2s ease-in-out infinite;
+    }
+
+    @keyframes gm-mesa-brillo {
+      0% {
+        background-position: 0% 50%;
+      }
+      100% {
+        background-position: 300% 50%;
+      }
+    }
+
+    @keyframes gm-mesa-pulso {
+      0%,
+      100% {
+        box-shadow: 0 0 16px rgb(124 58 237 / 0.4);
+      }
+      50% {
+        box-shadow: 0 0 26px rgb(56 224 240 / 0.35);
+      }
+    }
+
+    .gm-mesa .formula-viva {
+      margin: 0;
+      padding: 1.15rem 1rem 0.95rem;
+      border: 0;
+      border-radius: 0.85rem;
+      font-size: 1.28em;
+      background:
+        radial-gradient(
+          90% 130% at 50% 0%,
+          rgb(124 58 237 / 0.18),
+          transparent 60%
+        ),
+        #0a0e24;
+      box-shadow: inset 0 0 30px rgb(56 224 240 / 0.08);
+    }
+
+    .gm-mesa-rotulo {
+      position: absolute;
+      top: -0.72rem;
+      left: 50%;
+      z-index: 1;
+      transform: translateX(-50%);
+      padding: 0.05rem 0.75rem;
+      color: #c4b5fd;
+      border: 1px solid #7c3aed;
+      border-radius: 999px;
+      background: #0e1330;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ---- Marcador luminoso de la cámara ---- */
+
+    .gm-marcador {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin: 0.9rem 0;
+    }
+
+    .gm-marcador-celda {
+      display: flex;
+      flex: 1 1 8rem;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.05rem;
+      padding: 0.5rem 0.6rem 0.4rem;
+      border: 1px solid #2c3467;
+      border-radius: 0.6rem;
+      background: #0a0e24;
+      box-shadow: inset 0 0 14px rgb(0 0 0 / 0.6);
+    }
+
+    .gm-marcador-celda strong {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 1.7rem;
+      line-height: 1.1;
+      animation: gm-cifra-pop 0.35s ease-out;
+    }
+
+    @keyframes gm-cifra-pop {
+      from {
+        transform: scale(1.55);
+        filter: brightness(1.9);
+      }
+    }
+
+    .gm-marcador-celda span {
+      color: #8b95c9;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .gm-marcador-celda.es-jugadas strong {
+      color: #fde68a;
+      text-shadow: 0 0 10px rgb(251 191 36 / 0.6);
+    }
+
+    .gm-marcador-celda.es-tropiezos strong {
+      color: #f87171;
+      text-shadow: 0 0 10px rgb(248 113 113 / 0.55);
+    }
+
+    .gm-marcador-celda.es-espectros strong {
+      color: #c4b5fd;
+      text-shadow: 0 0 10px rgb(167 139 250 / 0.6);
+    }
+
+    /* ---- Tablero: la mano a la izquierda, el mazo a la derecha ---- */
+
+    .gm-tablero {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .gm-tablero .gm-mano {
+      flex: 1 1 22rem;
+    }
+
+    .gm-mazo {
+      position: relative;
+      flex: 0 0 10.4rem;
+      min-height: 14.2rem;
+      padding-top: 1.3rem;
+    }
+
+    .gm-mazo-rotulo {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #8b95c9;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .gm-mazo-hueco {
+      position: absolute;
+      top: 1.9rem;
+      right: 0;
+      left: 0;
+      display: grid;
+      height: 12.2rem;
+      padding: 0.5rem;
+      place-items: center;
+      color: #8b95c9;
+      border: 2px dashed #333b6e;
+      border-radius: 0.85rem;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    .gm-mazo-carta {
+      position: absolute;
+      top: calc(1.9rem + var(--n) * 1.7rem);
+      right: 0.2rem;
+      left: 0.2rem;
+      display: flex;
+      height: 12.2rem;
+      padding: 0.5rem 0.5rem 0.35rem;
+      flex-direction: column;
+      border: 2px solid #3a4487;
+      border-radius: 0.85rem;
+      background:
+        radial-gradient(
+          120% 90% at 50% 0%,
+          #232a5c 0%,
+          #171d42 60%,
+          #10142f 100%
+        );
+      box-shadow:
+        0 5px 10px rgb(0 0 0 / 0.5),
+        inset 0 0 0 1px rgb(251 191 36 / 0.18);
+      transform: rotate(calc(var(--n) * 2.5deg - 2.5deg));
+      animation: gm-carta-al-mazo 0.45s cubic-bezier(0.3, 1.3, 0.5, 1);
+    }
+
+    @keyframes gm-carta-al-mazo {
+      from {
+        transform: translate(-9rem, -1.5rem) rotate(-14deg);
+        opacity: 0.35;
+      }
+    }
+
+    .gm-mazo-marco {
+      display: grid;
+      flex: 1 1 auto;
+      margin: 0.1rem 0.1rem 0.4rem;
+      place-items: center;
+      color: #fde68a;
+      border: 1px solid rgb(251 191 36 / 0.35);
+      border-radius: 0.5rem;
+      background: #0a0e24;
+    }
+
+    .gm-mazo-nombre {
+      padding: 0.15rem 0.2rem 0.2rem;
+      color: #e2e8f0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    @media (max-width: 26rem) {
+      .gm-mazo {
+        flex: 1 1 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -770,6 +1163,130 @@
           />
         );
       }
+      // Arte de las cartas: un pictograma matemático por transformación,
+      // dibujado con KaTeX. Depende SOLO del nombre de la carta, para no
+      // delatar si en esta cámara es trampa, peligrosa o segura.
+      const GM_ARTE = {
+        "Producto nulo": "a\\cdot b=0",
+        "Desarrollar el producto": "a\\,(b+c)",
+        "Fórmula cuadrática": "\\frac{-b\\pm\\sqrt{\\Delta}}{2a}",
+        "Reunir a la izquierda": "\\ldots=0",
+        "Elevar al cuadrado": "(\\;\\;)^{2}",
+        "Igualar numeradores": "\\frac{a}{c}=\\frac{b}{c}",
+        "Multiplicar por el m.c.m.": "\\times\\,\\text{m.c.m.}",
+        "Aislar el radical": "\\sqrt{\\;\\;\\;}",
+        "Igualar argumentos": "\\log a=\\log b",
+        "Reunir: log del producto": "\\log(a\\cdot b)",
+        "Aplicar la definición": "10^{\\,\\square}",
+        "Desarrollar y reunir": "\\Rightarrow\\ldots=0",
+        "Igualar bases": "b^{x}=b^{y}",
+        "Tomar logaritmos": "\\log(\\;\\;)",
+        "Deshacer el cambio": "z\\to x"
+      };
+
+      function gmArteDeCarta(nombre) {
+        if (GM_ARTE[nombre]) {
+          return GM_ARTE[nombre];
+        }
+        if (nombre.indexOf("Cambio z") === 0) {
+          return "z=b^{x}";
+        }
+        return "\\ast";
+      }
+
+      // Trampas universales: errores clásicos que nunca son legales en
+      // ninguna cámara. Rellenan las manos cortas para que ninguna mano
+      // tenga una sola carta ni delate nada por su tamaño.
+      const GM_TRAMPAS_COMUNES = [
+        {
+          nombre: "Tachar la x en ambos lados",
+          tipo: "trampa",
+          leccion:
+            "Tachar no es transformar: solo puedes hacer la misma " +
+            "operación legal en los dos miembros, y «tachar» no lo es."
+        },
+        {
+          nombre: "Cambiar el signo a un solo miembro",
+          tipo: "trampa",
+          leccion:
+            "Cambiar el signo de un solo lado rompe la igualdad: " +
+            "habría que multiplicar los dos miembros por −1."
+        },
+        {
+          nombre: "Quitar los paréntesis sin multiplicar",
+          tipo: "trampa",
+          leccion:
+            "Los paréntesis no desaparecen gratis: hay que " +
+            "desarrollar multiplicando término a término."
+        },
+        {
+          nombre: "Sustituir x por 0",
+          tipo: "trampa",
+          leccion:
+            "Probar un valor comprueba, pero no transforma la " +
+            "ecuación: así no se despeja nada."
+        },
+        {
+          nombre: "Derivar ambos miembros",
+          tipo: "trampa",
+          leccion:
+            "Derivar cambia el problema: las soluciones de una " +
+            "ecuación no se conservan al derivar."
+        }
+      ];
+
+      function gmBarajarCartas(lista) {
+        const copia = lista.slice();
+        for (let i = copia.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temporal = copia[i];
+          copia[i] = copia[j];
+          copia[j] = temporal;
+        }
+        return copia;
+      }
+
+      // Toda mano queda con 3 cartas en orden aleatorio: ni la posición
+      // ni el tamaño de la mano delatan nada.
+      function gmEnriquecerSala(sala) {
+        const pasos = sala.pasos.map((paso) => {
+          const nombres = paso.cartas.map((c) => c.nombre);
+          const extras = gmBarajarCartas(
+            GM_TRAMPAS_COMUNES.filter(
+              (c) => nombres.indexOf(c.nombre) === -1
+            )
+          ).slice(0, Math.max(0, 3 - paso.cartas.length));
+          return {
+            ...paso,
+            cartas: gmBarajarCartas(paso.cartas.concat(extras))
+          };
+        });
+        return { ...sala, pasos };
+      }
+
+      Object.assign(GM_ARTE, {
+        "Tachar la x en ambos lados": "\\cancel{x}",
+        "Cambiar el signo a un solo miembro": "\\pm\\,?",
+        "Quitar los paréntesis sin multiplicar": "\\cancel{(\\;\\;)}",
+        "Sustituir x por 0": "x=0\\,?",
+        "Derivar ambos miembros": "\\tfrac{d}{dx}"
+      });
+
+      // Los nombres tipo «Cambio z = 3^x» se muestran con exponente de
+      // verdad; el dato interno no cambia.
+      function GmNombreCarta({ nombre }) {
+        const cambio = nombre.match(/^Cambio z = (\d+)\^x$/);
+        if (cambio) {
+          return (
+            <span>
+              {"Cambio "}
+              <MatematicaEnLinea tex={"z=" + cambio[1] + "^{x}"} />
+            </span>
+          );
+        }
+        return <span>{nombre}</span>;
+      }
+
       const GM_PARAMETROS = {
         1: [
           [2, -3],
@@ -1392,7 +1909,14 @@
       function GrimorioInteractivo({ configuracion, alPreparar }) {
         const [salaNum, setSalaNum] = React.useState(1);
         const [sala, setSala] = React.useState(() =>
-          gmConstruirSala(1, 0)
+          gmEnriquecerSala(
+            gmConstruirSala(
+              1,
+              Math.floor(
+                Math.random() * GM_PARAMETROS[1].length
+              )
+            )
+          )
         );
         const [pasoIdx, setPasoIdx] = React.useState(0);
         const [espectros, setEspectros] = React.useState([]);
@@ -1480,7 +2004,7 @@
           const opciones = GM_PARAMETROS[numero].length;
           const eleccion = Math.floor(Math.random() * opciones);
           setSalaNum(numero);
-          setSala(gmConstruirSala(numero, eleccion));
+          setSala(gmEnriquecerSala(gmConstruirSala(numero, eleccion)));
           setPasoIdx(0);
           setEspectros([]);
           setSeleccion(null);
@@ -1499,32 +2023,39 @@
         const paso = sala.pasos[pasoIdx];
         const carta =
           seleccion === null ? null : paso.cartas[seleccion];
+        // Vista: cartas ya jugadas en esta cámara. El camino que avanza
+        // es único y consecutivo, así que el mazo se deriva del paso
+        // actual sin necesitar estado propio.
+        const cartasJugadas = sala.pasos
+          .slice(0, fase === "cartas" ? pasoIdx : sala.pasos.length)
+          .map((pasoHecho) =>
+            pasoHecho.cartas.find(
+              (cartaHecha) => cartaHecha.salto !== undefined
+            )
+          );
 
-        const jugarCarta = () => {
-          if (!carta) {
-            return;
-          }
-          if (carta.tipo === "trampa") {
+        const jugarCarta = (cartaElegida, indice) => {
+          if (cartaElegida.tipo === "trampa") {
             setTropiezos(tropiezos + 1);
-            setLeccion(carta.leccion);
-            setTiembla(seleccion);
+            setLeccion(cartaElegida.leccion);
+            setTiembla(indice);
             setSeleccion(null);
             sonido([131, 98], 0.3);
             return;
           }
           setJugadas(jugadas + 1);
           setLeccion(null);
-          if (carta.espectros) {
-            setEspectros(espectros.concat(carta.espectros));
+          if (cartaElegida.espectros) {
+            setEspectros(espectros.concat(cartaElegida.espectros));
             sonido([196, 156], 0.45);
           } else {
             sonido([330, 415], 0.25);
           }
           setSeleccion(null);
-          if (carta.salto === "juicio") {
+          if (cartaElegida.salto === "juicio") {
             setFase("juicio");
           } else {
-            setPasoIdx(carta.salto);
+            setPasoIdx(cartaElegida.salto);
           }
         };
 
@@ -1603,7 +2134,7 @@
             </p>
             <p className="instruccion-interactivo">
               Destila cada ecuación jugando cartas de
-              transformación. Las cartas de borde rojo son legales
+              transformación. Las cartas selladas con ⚠ y borde rojo son legales
               pero traicioneras: meten espectros en el frasco, y en
               el Juicio final cada candidata tendrá que
               enfrentarse al contrato original.
@@ -1661,7 +2192,13 @@
 
             {fase === "cartas" && (
               <div>
-                <FormulaViva tex={paso.tex} />
+                <div className="gm-mesa">
+                  <span className="gm-mesa-rotulo">
+                    Mesa de destilación
+                  </span>
+                  <FormulaViva tex={paso.tex} />
+                </div>
+                <div className="gm-tablero">
                 <div
                   className="gm-mano"
                   role="group"
@@ -1678,54 +2215,62 @@
                           : "") +
                         (tiembla === indice ? " gm-tiembla" : "")
                       }
-                      aria-pressed={seleccion === indice}
-                      onClick={() => {
-                        setSeleccion(
-                          seleccion === indice ? null : indice
-                        );
-                        setLeccion(null);
-                      }}
+                      onClick={() => jugarCarta(cartaMano, indice)}
                     >
-                      {cartaMano.nombre}
+                      <span
+                        className="gm-carta-marco"
+                        aria-hidden="true"
+                      >
+                        <MatematicaEnLinea
+                          tex={gmArteDeCarta(cartaMano.nombre)}
+                        />
+                      </span>
+                      <span className="gm-carta-nombre">
+                        <GmNombreCarta nombre={cartaMano.nombre} />
+                      </span>
                     </button>
                   ))}
                 </div>
-
-                {carta && (
-                  <div className="paso-interactivo">
-                    <span className="kicker-conjunto">
-                      {carta.nombre}
-                    </span>
-                    {carta.tipo === "trampa" ? (
-                      <p>
-                        Esta carta no parece encajar aquí…
-                        ¿por qué? Júgala si quieres comprobarlo.
-                      </p>
-                    ) : (
-                      <div>
-                        <p>
-                          {carta.tipo === "peligrosa"
-                            ? "Carta peligrosa: es legal, pero " +
-                              "meterá espectros en el frasco. " +
-                              "Así quedaría la ecuación:"
-                            : "Así quedaría la ecuación:"}
-                        </p>
-                        <FormulaViva tex={carta.previewTex} />
-                      </div>
-                    )}
-                    <div className="opciones-interactivo">
-                      <button type="button" onClick={jugarCarta}>
-                        Jugar la carta
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSeleccion(null)}
-                      >
-                        Devolverla a la mano
-                      </button>
+                <div
+                  className="gm-mazo"
+                  role="group"
+                  aria-label="Mazo de cartas jugadas"
+                  style={{
+                    minHeight:
+                      14.2 +
+                      Math.max(0, cartasJugadas.length - 1) * 1.7 +
+                      "rem"
+                  }}
+                >
+                  <span className="gm-mazo-rotulo">
+                    Mazo de jugadas
+                  </span>
+                  {cartasJugadas.length === 0 && (
+                    <div className="gm-mazo-hueco">
+                      Aquí se apilarán tus cartas
                     </div>
-                  </div>
-                )}
+                  )}
+                  {cartasJugadas.map((cartaJugada, indice) => (
+                    <div
+                      key={cartaJugada.nombre + indice}
+                      className="gm-mazo-carta"
+                      style={{ "--n": indice }}
+                    >
+                      <span
+                        className="gm-mazo-marco"
+                        aria-hidden="true"
+                      >
+                        <MatematicaEnLinea
+                          tex={gmArteDeCarta(cartaJugada.nombre)}
+                        />
+                      </span>
+                      <span className="gm-mazo-nombre">
+                        <GmNombreCarta nombre={cartaJugada.nombre} />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                </div>
 
                 {leccion && (
                   <p className="nota-escala" aria-live="polite">
@@ -1735,15 +2280,24 @@
                   </p>
                 )}
 
-                <p className="nota-escala">
-                  {"Jugadas: " +
-                    jugadas +
-                    " (par de la cámara: " +
-                    sala.parJugadas +
-                    "). Espectros en el frasco: " +
-                    espectros.length +
-                    "."}
-                </p>
+                <div className="gm-marcador">
+                  <div className="gm-marcador-celda es-jugadas">
+                    <strong key={"j" + jugadas}>{jugadas}</strong>
+                    <span>
+                      {"Jugadas · par " + sala.parJugadas}
+                    </span>
+                  </div>
+                  <div className="gm-marcador-celda es-tropiezos">
+                    <strong key={"t" + tropiezos}>{tropiezos}</strong>
+                    <span>Tropiezos</span>
+                  </div>
+                  <div className="gm-marcador-celda es-espectros">
+                    <strong key={"e" + espectros.length}>
+                      {espectros.length}
+                    </strong>
+                    <span>Espectros</span>
+                  </div>
+                </div>
               </div>
             )}
 
