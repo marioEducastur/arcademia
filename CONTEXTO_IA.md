@@ -41,12 +41,12 @@ vigente, las decisiones aún no convertidas en reglas y los pendientes.
 
 | Juego | Curso | Tema | Origen en `shell.html` | Estado |
 |---|---|---|---|---|
-| El Grimorio de las Transformaciones | 1.º Bach. | Ecuaciones (unidad 2, Álgebra) | `GrimorioInteractivo`, `gmConstruirSala`, `GM_PARAMETROS`, `GM_NOMBRES`, `gmMas`, `gmTerminoX`, CSS `.gm-` | **Migrado y verificado; pendiente de la aprobación del profesor** |
-| Órbita Gauss: el observatorio de los tres planos | 1.º Bach. | Sistemas de ecuaciones (unidad 2, Álgebra) | `OrbitaGaussInteractivo`, funciones `og*`, CSS `.og-` | **Migrado y verificado; pendiente de la aprobación del profesor** |
-| Los Guardianes de ℝ | 1.º Bach. | Números reales (unidad 1) | `GuardianesRealesInteractivo`, generadores `grGen*`, CSS `.gr-` | **Migrado y verificado; pendiente de la aprobación del profesor** |
-| La Torre de los Enteros | 1.º ESO | Números enteros | Aportado por el profesor (no procede de mat1) | **Integrado y verificado; pendiente de la aprobación del profesor** |
-| f(x) SKATE | 4.º ESO y 1.º Bach. | Funciones (familias, gráficas, pendiente) | Aportado por el profesor (no procede de mat1) | **Integrado y verificado; pendiente de la aprobación del profesor** |
-| Parabólica | 4.º ESO | Función cuadrática (tres formas) | Aportado por el profesor (no procede de mat1) | **Integrado y verificado; pendiente de la aprobación del profesor** |
+| El Grimorio de las Transformaciones | 1.º Bach. | Ecuaciones (unidad 2, Álgebra) | `GrimorioInteractivo`, `gmConstruirSala`, `GM_PARAMETROS`, `GM_NOMBRES`, `gmMas`, `gmTerminoX`, CSS `.gm-` | **Publicado** |
+| Órbita Gauss: el observatorio de los tres planos | 1.º Bach. | Sistemas de ecuaciones (unidad 2, Álgebra) | `OrbitaGaussInteractivo`, funciones `og*`, CSS `.og-` | **Publicado** |
+| Los Guardianes de ℝ | 1.º Bach. | Números reales (unidad 1) | `GuardianesRealesInteractivo`, generadores `grGen*`, CSS `.gr-` | **Publicado** |
+| La Torre de los Enteros | 1.º ESO | Números enteros | Aportado por el profesor (no procede de mat1) | **Publicado** |
+| f(x) SKATE | 4.º ESO y 1.º Bach. | Funciones (familias, gráficas, pendiente) | Aportado por el profesor (no procede de mat1) | **Publicado** |
+| Parabólica | 4.º ESO | Función cuadrática (tres formas) | Aportado por el profesor (no procede de mat1) | **Publicado** |
 
 Orden de migración: Grimorio (piloto) → **Guardianes** → Órbita Gauss
 (cambiado por el profesor el 5 de agosto: quería el juego de la unidad 1
@@ -63,51 +63,32 @@ Enlaces «Aprende esto en…» hacia los apuntes:
 
 ## Pendientes (lista única y vigente)
 
-1. **Piloto migrado y verificado (2026-08-05), pendiente de la aprobación
-   del profesor.** `juegos/bachillerato-1/grimorio-transformaciones.html`
-   (1708 líneas, autocontenido, 5 cargas fijadas de jsDelivr, sin
-   auto-render porque no hay fórmulas estáticas). Verificación en dos
-   capas, como en `mat1`: barrido `jsc` de las 19 variantes
-   (689 comprobaciones, 0 fallos: estructura y par de jugadas de cada
-   camino, previsualizaciones que coinciden con el paso siguiente, TeX
-   sin corrupción, veredicto de cada candidata contrastado con la
-   evaluación numérica de la ecuación original reconstruida desde su TeX,
-   coherencia controles-veredicto, y barrido de raíces por bisección que
-   confirma que ninguna solución real queda fuera del Juicio) y partida
-   completa por DOM en el navegador servido por HTTP (5 cámaras selladas,
-   10/10 juicios certeros decididos por un evaluador numérico
-   independiente que lee el TeX de las anotaciones MathML de KaTeX,
-   tropiezo deliberado con su lección, 2 espectros en el frasco,
-   98 puntos y récord en `localStorage`; consola limpia, 0 errores KaTeX,
-   móvil de 375 px sin desbordes). Adaptaciones respecto a `shell.html`:
-   la clase `og-misiones` que el juego tomaba prestada pasa a llamarse
-   `gm-camaras` (mismo CSS, definido en el propio archivo) y el montaje
-   es directo (sin registro de componentes ni respaldo Pandoc); el
-   respaldo estático es un aviso de carga que desaparece al montar.
-2. **Portada escrita y verificada (2026-08-05), con el plan aprobado por
-   el profesor.** `index.html` (510 líneas, HTML y CSS puros: la portada no
-   carga ninguna dependencia; los juegos cargan las suyas). Marquesina con
-   el rótulo «ARCADEMIA» en pixel-art real (SVG de 154 rects generados
-   desde matrices 5×7, `role="img"` y `aria-label`), halo neón por
-   `drop-shadow` y orlas de bombillas con gradientes que alternan brillo
-   (fijas con `prefers-reduced-motion`). Seis estanterías (1.º-4.º ESO,
-   1.º-2.º Bachillerato) con rejilla `auto-fit minmax(16rem, 1fr)`; las
-   vacías muestran la ranura «Próximamente». Cartucho del Grimorio con
-   estrías, etiqueta clara con franja violeta del curso, chips de curso y
-   tema, botón-enlace «Jugar» (ámbar con texto oscuro fijado y
-   `aria-label` descriptivo) y «Aprende esto en…». Decisión del profesor:
-   **solo se enlazan juegos migrados y verificados**. Verificado en
-   navegador: landmarks presentes, `HEAD 200` del enlace relativo a
-   Jugar, 375 px sin desbordes en portada y juego, capturas de escritorio
-   y móvil revisadas. Pendiente: revisión visual del profesor.
-3. Migrar «Órbita Gauss» y después «Los Guardianes de ℝ», con confirmación
-   del profesor entre juego y juego.
-4. Cuando Arcademia esté publicada (con autorización expresa: repo, commit,
-   push y Pages), en sesiones de `mat1` se retirarán los juegos de
-   `shell.html` y las unidades enlazarán con tarjetas-cartucho. **Desde
+1. En sesiones de `mat1`, cuando el profesor lo ordene: retirar los juegos
+   de `shell.html` y enlazar las unidades con tarjetas-cartucho. **Desde
    Arcademia, `mat1` no se toca.**
+2. Decidir con el profesor si el **modo libre de Parabólica** permite
+   lanzar con a > 0: hoy su pista invita a «poner a positiva y mirar
+   hacia dónde se va el búho», pero `valida()` lo bloquea con un aviso y
+   el búho nunca vuela (cambio pequeño si lo quiere).
+3. «Aprende esto en…»: añadirlo a la Torre, f(x) SKATE y Parabólica cuando
+   se publiquen las unidades de apuntes correspondientes; el pie del
+   Grimorio pasará del portal a `unidad_02_algebra.html` cuando exista.
+4. Respaldo en Drive: la última instantánea es del 6 de agosto de 2026;
+   hacer una nueva cuando el profesor lo ordene.
 
 ## Registro breve
+
+- **2026-09-01 (publicación de Funciones):** por orden expresa del
+  profesor («ok, haz commit/push»): **commit `aa10655`** con las tres
+  tandas pendientes (portada por áreas con filtro por curso, f(x) SKATE
+  y Parabólica) y push a `origin/main`; `pages-build-deployment` en
+  verde y las **siete páginas con 200 en producción** (portada y seis
+  juegos), con «Parabólica» comprobado en la portada publicada. Como en
+  el precedente del 6 de agosto, la publicación da por buena de facto la
+  revisión visual pendiente; cualquier retoque posterior seguirá el
+  ciclo normal. Sin instantánea nueva en Drive (no se ha ordenado; queda
+  en Pendientes). Este registro entra en un segundo commit inmediato
+  para que el repo quede al día.
 
 - **2026-09-01 (Parabólica, 4.º ESO; SIN COMMIT, pendiente de orden):**
   tercer juego aportado por el profesor (canvas y WebAudio nativos, cero
