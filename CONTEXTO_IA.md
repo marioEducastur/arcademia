@@ -73,10 +73,22 @@ Enlaces «Aprende esto en…» hacia los apuntes:
 3. «Aprende esto en…»: añadirlo a la Torre, f(x) SKATE y Parabólica cuando
    se publiquen las unidades de apuntes correspondientes; el pie del
    Grimorio pasará del portal a `unidad_02_algebra.html` cuando exista.
-4. Respaldo en Drive: la última instantánea es del 6 de agosto de 2026;
-   hacer una nueva cuando el profesor lo ordene.
+4. Respaldo en Drive: última instantánea `2026-09-01_1730`, verificada;
+   hacer nuevas instantáneas cuando el profesor lo ordene.
 
 ## Registro breve
+
+- **2026-09-01 (instantánea en Drive):** por orden expresa del profesor
+  («ok, guarda en drive»): `Mate/Arcademia/01_salon/2026-09-01_1730/`
+  (web completa: portada y los seis juegos con su estructura
+  `juegos/<nivel>/`) y `99_respaldo/2026-09-01_1730/` (AGENTS,
+  CONTEXTO_IA y `settings.local.json`), **las diez copias verificadas
+  byte a byte con `cmp`**. Las carpetas fechadas se crearon en la nube y
+  los archivos se copiaron por el espejo local de Google Drive
+  (`~/Library/CloudStorage/…/Mi unidad/Mate/Arcademia/`), la misma vía
+  de las instantáneas de agosto; nada se sobrescribe. La instantánea
+  recoge el estado del commit `3b7a079`; esta entrada viaja en un commit
+  posterior, como es costumbre.
 
 - **2026-09-01 (publicación de Funciones):** por orden expresa del
   profesor («ok, haz commit/push»): **commit `aa10655`** con las tres
