@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#1c1038">
+<title>f(x) SKATE · Arcademia</title>
+<!--
+  Juego: f(x) SKATE — el skatepark de las funciones
+  Curso: 4.º ESO (modo fácil, con gráfica) y 1.º de Bachillerato
+  (modo PRO y familias completas: senos y cúbicas)
+  Tema: Funciones — familias, lectura de gráficas y signo de la pendiente
+  Origen: aportado por el profesor (prototipo «v7», no procede de mat1);
+  autocontenido: canvas y WebAudio nativos, sin dependencias externas
+  (las webfonts de Google del prototipo se sustituyen por pilas de
+  fuentes del sistema, según la regla del proyecto).
+  Estética propia synthwave: se conserva a propósito.
+-->
+<style>
+  :root{
+    --night:#1c1038;
+    --violet:#5b3a8e;
+    --rose:#e0588c;
+    --sun:#ffb35c;
+    --neon:#5ff2e6;
+    --gold:#ffd25a;
+    --ink:#f4ecff;
+    --fuente-rotulo:"Bungee","Arial Black","Arial Bold",sans-serif;
+    --fuente-texto:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --fuente-formula:"STIX Two Text","STIXGeneral",Georgia,"Times New Roman",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--night);
+    font-family:var(--fuente-texto);color:var(--ink);
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  #wrap{position:fixed;inset:0}
+  canvas{display:block;width:100%;height:100%}
+
+  /* ---------- HUD ---------- */
+  #hud{position:absolute;inset:0;pointer-events:none;display:none}
+  .hud-left{position:absolute;top:14px;left:16px;display:flex;gap:18px;align-items:flex-end}
+  .hud-right{position:absolute;top:14px;right:16px;text-align:right}
+  .stat .lab{font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.65}
+  .stat .val{font-family:var(--fuente-rotulo);font-size:26px;line-height:1.05;
+    text-shadow:0 0 14px rgba(95,242,230,.45)}
+  .stat .val small{font-family:var(--fuente-texto);font-size:12px;opacity:.7;margin-left:2px}
+  #vel .val{color:var(--neon)}
+  #dist .val{color:var(--ink)}
+  #score .val{color:var(--gold);text-shadow:0 0 14px rgba(255,210,90,.45)}
+  #slope .val{font-size:20px}
+  #slopeArrow{display:inline-block;margin-right:7px;transition:transform .12s linear}
+  #lesson{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(10,4,26,.72);z-index:8}
+  .lpanel{width:min(430px,92vw);background:linear-gradient(170deg,rgba(58,34,104,.97),rgba(26,14,52,.98));
+    border:1px solid rgba(255,79,163,.45);border-radius:18px;padding:20px 22px;text-align:center;
+    box-shadow:0 18px 50px rgba(5,0,20,.6)}
+  .lpanel .ltitle{font-family:var(--fuente-rotulo);color:#ff4fa3;font-size:17px;margin-bottom:10px;
+    text-shadow:0 0 14px rgba(255,79,163,.5)}
+  .lpanel .lbody{font-size:14px;line-height:1.55;margin-bottom:10px}
+  .lpanel .lbody b{color:var(--neon);font-style:normal}
+  .lpanel svg{width:100%;height:auto;background:rgba(10,4,26,.5);border-radius:10px;margin-bottom:12px}
+  .lpanel .btn{font-size:14px;padding:10px 28px}
+  #lives{margin-top:6px;font-size:15px;letter-spacing:5px;color:var(--rose)}
+  #modeBadge{margin-top:4px;display:inline-block;font-family:var(--fuente-rotulo);font-size:10px;
+    padding:2px 9px;border-radius:99px;border:1px solid rgba(255,210,90,.5);color:var(--gold)}
+  #quitBtn{position:absolute;bottom:14px;left:16px;pointer-events:auto;cursor:pointer;
+    font-family:var(--fuente-texto);font-size:12px;font-weight:600;color:var(--ink);
+    background:rgba(28,16,56,.72);border:1px solid rgba(244,236,255,.3);border-radius:99px;
+    padding:7px 16px;letter-spacing:.04em;z-index:5}
+  #quitBtn:hover{border-color:var(--neon);color:var(--neon)}
+  #toasts{position:absolute;top:84px;left:0;right:0;display:flex;flex-direction:column;
+    align-items:center;gap:6px;pointer-events:none}
+  .toast{font-family:var(--fuente-rotulo);font-size:15px;padding:6px 16px;border-radius:99px;
+    background:rgba(28,16,56,.78);border:1px solid rgba(95,242,230,.35);
+    animation:toast 1.9s ease forwards;white-space:nowrap}
+  .toast.gold{color:var(--gold);border-color:rgba(255,210,90,.4)}
+  .toast.bad{color:var(--rose);border-color:rgba(224,88,140,.5)}
+  .toast.trick{color:#fff;font-size:18px;border-color:var(--rose);
+    background:linear-gradient(90deg,rgba(224,88,140,.35),rgba(95,242,230,.3))}
+  @keyframes toast{0%{opacity:0;transform:translateY(-8px)}12%{opacity:1;transform:none}
+    78%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+
+  /* ---------- tiempo bala / cartas ---------- */
+  #vignette{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .45s;
+    background:radial-gradient(ellipse at 50% 46%,transparent 38%,rgba(10,4,26,.82) 100%)}
+  #choice{position:absolute;inset:0;display:none;flex-direction:column;justify-content:flex-end;
+    align-items:center;padding-bottom:4vh;gap:14px}
+  #choice .banner{font-family:var(--fuente-rotulo);font-size:clamp(15px,2.4vw,22px);color:var(--neon);
+    letter-spacing:.06em;text-shadow:0 0 18px rgba(95,242,230,.6)}
+  #choice .hint{font-size:12.5px;opacity:.75;margin-top:-8px;text-align:center;padding:0 14px}
+  #cards{display:flex;gap:clamp(10px,2vw,22px);justify-content:center;flex-wrap:wrap;padding:0 12px}
+  .card{pointer-events:auto;cursor:pointer;width:clamp(168px,21vw,218px);
+    background:linear-gradient(170deg,rgba(58,34,104,.92),rgba(26,14,52,.94));
+    border:1px solid rgba(95,242,230,.30);border-radius:16px;padding:13px 14px 11px;
+    box-shadow:0 14px 38px rgba(5,0,20,.55);
+    transform:translateY(26px);opacity:0;animation:rise .4s ease forwards;
+    transition:transform .15s,border-color .15s,box-shadow .15s}
+  .card:nth-child(2){animation-delay:.07s}.card:nth-child(3){animation-delay:.14s}
+  @keyframes rise{to{transform:none;opacity:1}}
+  .card:hover,.card:focus-visible{transform:translateY(-5px);border-color:var(--neon);
+    box-shadow:0 16px 42px rgba(95,242,230,.18);outline:none}
+  .card .key{display:inline-block;font-family:var(--fuente-rotulo);font-size:11px;color:var(--night);
+    background:var(--neon);border-radius:6px;padding:2px 7px;margin-bottom:7px}
+  .card .formula{font-family:var(--fuente-formula);font-style:italic;font-weight:600;
+    font-size:clamp(15px,1.5vw,18px);min-height:2.6em;display:flex;align-items:center;
+    justify-content:center;text-align:center;line-height:1.35;letter-spacing:.01em}
+  .card .formula .t{white-space:nowrap}
+  .card .formula sup{font-size:.62em}
+  .card.pro .formula{min-height:3.4em;font-size:clamp(17px,1.7vw,20px);justify-content:center;text-align:center}
+  .card svg{display:block;width:100%;height:auto;margin:4px 0 6px;
+    background:rgba(10,4,26,.5);border-radius:9px}
+  .card .meta{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+
+  /* ---------- pantallas ---------- */
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-start;
+    align-items:center;gap:16px;text-align:center;padding:24px;overflow:auto;
+    background:radial-gradient(ellipse at 50% 30%,rgba(91,58,142,.32),transparent 60%)}
+  /* centrado seguro: centra cuando cabe y permite llegar arriba cuando no */
+  .screen > :first-child{margin-top:auto}
+  .screen > :last-child{margin-bottom:auto}
+  .screen h1{font-family:var(--fuente-rotulo);font-size:clamp(32px,6.5vw,64px);line-height:1;
+    color:var(--ink);text-shadow:0 0 28px rgba(224,88,140,.55),0 0 60px rgba(95,242,230,.25)}
+  .screen h1 .fx{color:var(--neon)}
+  .screen .sub{font-size:clamp(14px,1.8vw,16px);max-width:580px;opacity:.88;line-height:1.5}
+  .rules{display:flex;gap:clamp(10px,1.6vw,18px);flex-wrap:wrap;justify-content:center;max-width:920px}
+  .rule{width:206px;background:rgba(28,16,56,.66);border:1px solid rgba(95,242,230,.18);
+    border-radius:14px;padding:13px 14px;font-size:12.5px;line-height:1.45;text-align:left}
+  .rule b{color:var(--neon);font-weight:700;display:block;margin-bottom:4px;
+    letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+  #modeBtns{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+  .btn{pointer-events:auto;cursor:pointer;font-family:var(--fuente-rotulo);font-size:17px;
+    color:var(--night);background:linear-gradient(180deg,var(--neon),#39c9bd);
+    border:none;border-radius:14px;padding:13px 30px;letter-spacing:.05em;
+    box-shadow:0 10px 30px rgba(95,242,230,.35);transition:transform .12s;text-align:center}
+  .btn small{display:block;font-family:var(--fuente-texto);font-size:11px;font-weight:600;
+    letter-spacing:0;text-transform:none;margin-top:3px;opacity:.8}
+  .btn.pro{color:#2a1030;background:linear-gradient(180deg,var(--gold),#e09a30);
+    box-shadow:0 10px 30px rgba(255,210,90,.3)}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.ghost{background:none;color:var(--ink);border:1px solid rgba(244,236,255,.3);
+    box-shadow:none;font-size:13px;padding:9px 20px}
+  .note{font-size:12px;opacity:.55;max-width:560px;line-height:1.5}
+  .volver{display:inline-block;margin-top:4px;color:var(--ink);font-size:13px;font-weight:600;
+    text-decoration:none;border:1px solid rgba(244,236,255,.3);border-radius:99px;
+    padding:8px 18px;letter-spacing:.04em}
+  .volver:hover,.volver:focus-visible{border-color:var(--neon);color:var(--neon)}
+  #over{display:none}
+  #over .big{font-family:var(--fuente-rotulo);font-size:clamp(26px,4.6vw,44px);color:var(--gold);
+    text-shadow:0 0 24px rgba(255,210,90,.5)}
+  #finalStats{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+  #finalStats .stat .val{font-size:28px}
+  @media (prefers-reduced-motion: reduce){
+    .card{animation:none;transform:none;opacity:1}
+    #vignette{transition:none}
+  }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="cv" role="img" aria-label="Pista del skatepark con el patinador en movimiento"></canvas></div>
+
+<div id="vignette"></div>
+
+<div id="hud">
+  <div class="hud-left">
+    <div class="stat" id="vel"><div class="lab">velocidad</div><div class="val">0,0<small>m/s</small></div></div>
+    <div class="stat" id="dist"><div class="lab">distancia</div><div class="val">0<small>m</small></div></div>
+    <div class="stat" id="slope"><div class="lab">pendiente</div>
+      <div class="val"><span id="slopeArrow" aria-hidden="true">➜</span><span id="slopeVal">0</span></div></div>
+  </div>
+  <div class="hud-right">
+    <div class="stat" id="score"><div class="lab">puntos</div><div class="val">0</div></div>
+    <div id="lives" role="img" aria-label="3 vidas">⬤ ⬤ ⬤</div><br>
+    <span id="modeBadge"></span>
+  </div>
+  <div id="toasts" aria-live="polite"></div>
+  <button id="quitBtn">✕ Finalizar</button>
+</div>
+
+<div id="choice" role="group" aria-label="Tiempo bala: elige tu tramo">
+  <div class="banner">⏱ Tiempo bala — elige tu tramo</div>
+  <div class="hint">La <i>x</i> de cada fórmula se mide en metros <b>desde donde estás ahora</b>. Mira tu velocidad antes de elegir.</div>
+  <div id="cards"></div>
+</div>
+
+<div id="lesson"><div class="lpanel" role="dialog" aria-modal="true" aria-label="Física exprés">
+  <div class="ltitle">⚡ Física exprés</div>
+  <div class="lbody" id="lessonBody"></div>
+  <div id="lessonSVG"></div>
+  <button class="btn" id="lessonBtn">Seguir</button>
+</div></div>
+
+<div class="screen" id="menu">
+  <h1><span class="fx">f(x)</span> SKATE</h1>
+  <div class="sub">Lee la fórmula. Elige tu rampa. Sobrevive a la pendiente.<br>
+  La gravedad te acelera al bajar y te frena al subir: <b>la altura se convierte en velocidad</b>.</div>
+  <div class="rules">
+    <div class="rule"><b>Elige el tramo</b>Antes de acabar la pista, el tiempo se ralentiza y aparecen 3 funciones. Pulsa la carta o las teclas 1, 2 y 3.</div>
+    <div class="rule"><b>Lee la pendiente</b>Pendiente negativa: aceleras. Positiva: solo subes con velocidad suficiente. Si te paras, ruedas hacia atrás.</div>
+    <div class="rule"><b>Salta y gira</b>Si coronas una rampa con mucha velocidad, despegas. Cuanto más tiempo vueles, mejor pirueta: Ollie, Kickflip 360, Flip 720…</div>
+    <div class="rule"><b>Desbloquea familias</b>Empiezas con rectas y parábolas. A los 120 m entran los senos y a los 250 m las cúbicas.</div>
+  </div>
+  <div id="modeBtns">
+    <button class="btn" id="easyBtn">Modo fácil<small>fórmula + gráfica</small></button>
+    <button class="btn pro" id="proBtn">Modo PRO<small>solo fórmula · puntos ×1,5</small></button>
+  </div>
+  <div class="note">En modo PRO no hay dibujo ni pista del tipo de tramo: tendrás que imaginar la gráfica leyendo los coeficientes. Las fórmulas son exactamente las del trazado: lo que lees es lo que patinas.</div>
+  <a class="volver" href="../../index.html">← Arcademia</a>
+</div>
+
+<div class="screen" id="over">
+  <div class="big">FIN DEL RECORRIDO</div>
+  <div id="finalStats">
+    <div class="stat"><div class="lab">distancia</div><div class="val" id="fDist">0 m</div></div>
+    <div class="stat"><div class="lab">monedas</div><div class="val" id="fCoins">0</div></div>
+    <div class="stat"><div class="lab">piruetas</div><div class="val" id="fTricks">0</div></div>
+    <div class="stat"><div class="lab">puntuación</div><div class="val" id="fScore" style="color:var(--gold)">0</div></div>
+    <div class="stat"><div class="lab">récord de la sesión</div><div class="val" id="fBest">0</div></div>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+    <button class="btn" id="againBtn">Reintentar</button>
+    <button class="btn ghost" id="menuBtn">Cambiar de modo</button>
+  </div>
+  <div class="note">Pregunta para clase: ¿en qué tramo perdiste más velocidad y por qué? Fíjate en el signo de la pendiente.</div>
+</div>
+
+<script>
+"use strict";
+/* ================= constantes ================= */
+const G = 9.8;            // m/s²
+const MU = 0.020;         // fricción de rodadura
+const KD = 0.0042;        // resistencia del aire (·v²)
+const TRIGGER = 12;       // m antes del final para abrir cartas
+const SINE_AT = 120;      // m: desbloqueo de senos
+const CUBIC_AT = 250;     // m: desbloqueo de cúbicas
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+function resize(){
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W * DPR; cv.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+addEventListener("resize", resize); resize();
+
+/* ================= utilidades ================= */
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const MINUS = "−";
+const fmtNum = (n, d = 2) => {
+  let s = Math.abs(n).toFixed(d);
+  s = s.replace(/0+$/, "").replace(/\.$/, "");
+  return s.replace(".", ",");
+};
+const term = (coef, sym, first) => {            // construye "± c·sym" como bloque indivisible
+  if (coef === 0) return "";
+  const mag = Math.abs(coef);
+  const c = (mag === 1 && sym) ? "" : fmtNum(mag, 4);
+  if (first) return `<span class="t">${coef < 0 ? MINUS : ""}${c}${sym}</span>`;
+  return ` <span class="t">${coef < 0 ? MINUS : "+"}&nbsp;${c}${sym}</span>`;
+};
+
+/* ================= audio mínimo ================= */
+let AC = null;
+function beep(freq, dur, type, vol){
+  if (!AC) return;
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type || "sine"; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol || .12, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + dur);
+  o.connect(g); g.connect(AC.destination);
+  o.start(); o.stop(AC.currentTime + dur);
+}
+const sndCoin = () => { beep(880, .09, "triangle", .14); setTimeout(() => beep(1320, .12, "triangle", .12), 70); };
+const sndFail = () => { beep(140, .35, "sawtooth", .14); };
+const sndPick = () => { beep(520, .08, "square", .07); };
+const sndJump = () => { beep(420, .1, "square", .08); setTimeout(() => beep(640, .1, "square", .07), 60); };
+const sndTrick = () => { beep(660, .08, "triangle", .12); setTimeout(() => beep(990, .09, "triangle", .11), 70);
+  setTimeout(() => beep(1320, .14, "triangle", .1), 140); };
+
+/* ================= estado del juego ================= */
+let state = "menu";        // menu | play | choose | over
+let mode = "easy";         // easy | pro
+let segs = [];
+let player, cameraY, timeScale, timeTarget, particles;
+let score, coinsTaken, trickPts, lives, stuckT, shakeT, lastChoiceX;
+let unlockedSine = false, unlockedCubic = false;
+let bestScore = 0;
+
+function totalScore(){
+  const base = Math.round(player.x) + coinsTaken * 50 + trickPts;
+  return mode === "pro" ? Math.round(base * 1.5) : base;
+}
+function trackSegAt(x){
+  for (let i = segs.length - 1; i >= 0; i--)
+    if (x >= segs[i].x0) return segs[i];
+  return segs[0];
+}
+function trackY(x){
+  const s = trackSegAt(x);
+  return s.y0 + s.f(clamp(x - s.x0, 0, s.L));
+}
+function trackSlope(x){
+  const s = trackSegAt(x);
+  return s.df(clamp(x - s.x0, 0, s.L));
+}
+function trackCurv(x){
+  const s = trackSegAt(x);
+  return s.d2(clamp(x - s.x0, 0, s.L));
+}
+
+/* ================= tramos: f(0)=0 garantiza continuidad ================= */
+function lineSeg(m, L){
+  return {
+    f: u => m * u, df: () => m, d2: () => 0, L,
+    formula: `f(x) = ${term(m, "x", true)}`,
+    kind: "recta",
+    coins: Math.random() < .45 ? [{ u: L / 2, taken: false, tag: "" }] : []
+  };
+}
+function parabSeg(a, b, L){
+  const xv = -b / (2 * a);
+  const coins = [];
+  if (xv > 2 && xv < L - 2) coins.push({ u: xv, taken: false, tag: "¡Vértice!" });
+  return {
+    f: u => a * u * u + b * u, df: u => 2 * a * u + b, d2: () => 2 * a, L,
+    formula: `f(x) = ${term(a, "x<sup>2</sup>", true)}${term(b, "x", false)}`,
+    kind: a > 0 ? "valle" : "rampa", coins
+  };
+}
+function sineSeg(A, B, L){
+  const coins = [];
+  let crest = (Math.PI / 2) / B;                 // primer máximo
+  while (crest < L - 2){
+    coins.push({ u: crest, taken: false, tag: "¡Cresta!" });
+    crest += 2 * Math.PI / B;
+  }
+  return {
+    f: u => A * Math.sin(B * u),
+    df: u => A * B * Math.cos(B * u),
+    d2: u => -A * B * B * Math.sin(B * u), L,
+    formula: `f(x) = <span class="t">${fmtNum(A, 1)}·sen(${fmtNum(B, 2)}x)</span>`,
+    kind: "onda", coins
+  };
+}
+function cubicSeg(a, b, L){
+  const f = u => a * u ** 3 + b * u * u;
+  // moneda en el extremo interior (u* = -2b/3a)
+  const us = -2 * b / (3 * a);
+  const coins = (us > 2 && us < L - 2) ? [{ u: us, taken: false, tag: "¡Extremo!" }] : [];
+  return {
+    f, df: u => 3 * a * u * u + 2 * b * u, d2: u => 6 * a * u + 2 * b, L,
+    formula: `f(x) = ${term(a, "x<sup>3</sup>", true)}${term(b, "x<sup>2</sup>", false)}`,
+    kind: "cúbica", coins
+  };
+}
+
+/* ---- generadores aleatorios por familia ---- */
+function genLine(diff){
+  const mMax = 0.45 + 0.55 * diff;
+  let m = Math.round(rand(-mMax, mMax) * 100) / 100;
+  if (Math.abs(m) < 0.06) m = -0.12;
+  return lineSeg(m, Math.round(rand(28, 42)));
+}
+function genParab(diff){
+  const hill = Math.random() < .5;
+  let a = rand(0.012, 0.045 + 0.02 * diff) * (hill ? -1 : 1);
+  a = Math.round(a * 1000) / 1000;
+  let L = Math.round(rand(20, 30));
+  const xv = rand(0.35, 0.6) * L;
+  const b = Math.round(-2 * a * xv * 100) / 100;
+  const xvR = -b / (2 * a);
+  L = Math.round(Math.min(L, xvR + 1.25 / (2 * Math.abs(a))));
+  if (L <= xvR + 3) L = Math.round(xvR + 4);
+  return parabSeg(a, b, L);
+}
+function genSine(diff){
+  const B = Math.round(rand(0.25, 0.5 + 0.1 * diff) * 100) / 100;
+  const A = Math.round(Math.min(rand(1.0, 2.6 + diff), 1.25 / B) * 10) / 10;
+  return sineSeg(A, B, Math.round(rand(24, 34)));
+}
+function genCubic(diff){
+  const dip = Math.random() < .6;                // baja-y-sube o sube-y-baja
+  let L = Math.round(rand(24, 32));
+  const us = rand(0.4, 0.6) * L;
+  const depth = rand(1.2, 2.8 + 1.5 * diff) * (dip ? 1 : -1);
+  let a = 2 * depth / (us ** 3);
+  a = Math.round(a * 10000) / 10000;
+  if (a === 0) a = dip ? 0.0005 : -0.0005;
+  let b = Math.round((-3 * a * us / 2) * 1000) / 1000;
+  // recorta L hasta que la pendiente sea razonable en todo el tramo
+  const dfm = LL => {
+    let mx = 0;
+    for (let i = 0; i <= 30; i++){
+      const u = LL * i / 30;
+      mx = Math.max(mx, Math.abs(3 * a * u * u + 2 * b * u));
+    }
+    return mx;
+  };
+  while (L > 12 && dfm(L) > 1.35) L -= 2;
+  return cubicSeg(a, b, L);
+}
+
+/* ---- viabilidad: máxima subida acumulada que exige el tramo ---- */
+function needClimb(seg){
+  let runMin = 0, need = 0;
+  for (let i = 0; i <= 60; i++){
+    const y = seg.f(seg.L * i / 60);
+    need = Math.max(need, y - runMin);
+    runMin = Math.min(runMin, y);
+  }
+  return need;
+}
+
+function addSeg(proto){
+  const last = segs[segs.length - 1];
+  const x0 = last ? last.x0 + last.L : 0;
+  const y0 = last ? last.y0 + last.f(last.L) : 0;
+  segs.push(Object.assign({ x0, y0 }, proto));
+  if (segs.length > 14) segs.shift();
+}
+
+/* ---- cartas: una siempre viable, las otras pueden ser trampa ---- */
+function genCards(){
+  const vRef = player.air ? Math.hypot(player.vx, player.vy) : player.v;
+  const hMax = (vRef * vRef) / (2 * G) * 0.82;
+  const diff = clamp(player.x / 600, 0, 1);
+  const pool = [genLine, genParab];
+  if (player.x > SINE_AT) pool.push(genSine);
+  if (player.x > CUBIC_AT) pool.push(genCubic);
+
+  let safe = null;
+  for (let t = 0; t < 30 && !safe; t++){
+    const c = pick(pool)(diff);
+    if (needClimb(c) <= Math.max(0.45 * hMax, 0.25)) safe = c;
+  }
+  if (!safe) safe = lineSeg(-0.4, 24);
+  const cards = [safe, pick(pool)(diff), pick(pool)(diff)];
+  for (let i = cards.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  return cards;
+}
+
+/* ---- minigráfica SVG (solo modo fácil) ---- */
+function cardSVG(seg, stopU){
+  const N = 48, pts = [];
+  let mn = 0, mx = 0;
+  for (let i = 0; i <= N; i++){
+    const u = seg.L * i / N, y = seg.f(u);
+    pts.push([u, y]); mn = Math.min(mn, y); mx = Math.max(mx, y);
+  }
+  const pad = Math.max((mx - mn) * 0.15, 0.6);
+  mn -= pad; mx += pad;
+  const w = 150, h = 78;
+  const X = u => 8 + (u / seg.L) * (w - 16);
+  const Y = y => h - 8 - ((y - mn) / (mx - mn)) * (h - 16);
+  const d = pts.map((p, i) => `${i ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+  let coins = "";
+  for (const c of seg.coins)
+    coins += `<circle cx="${X(c.u).toFixed(1)}" cy="${(Y(seg.f(c.u)) - 4).toFixed(1)}" r="3.4" fill="#ffd25a"/>`;
+  let stop = "";
+  if (stopU != null){
+    const sx = X(stopU).toFixed(1), sy = Y(seg.f(stopU)).toFixed(1);
+    stop = `<circle cx="${sx}" cy="${sy}" r="5.5" fill="none" stroke="#ff4fa3" stroke-width="2"
+        style="filter:drop-shadow(0 0 4px rgba(255,79,163,.8))"/>
+      <circle cx="${sx}" cy="${sy}" r="2.2" fill="#ff4fa3"/>`;
+  }
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <line x1="8" y1="${Y(0).toFixed(1)}" x2="${w - 8}" y2="${Y(0).toFixed(1)}"
+      stroke="rgba(244,236,255,.22)" stroke-dasharray="3 4" stroke-width="1"/>
+    <path d="${d}" fill="none" stroke="#5ff2e6" stroke-width="2.4"
+      stroke-linecap="round" style="filter:drop-shadow(0 0 4px rgba(95,242,230,.7))"/>
+    <circle cx="8" cy="${Y(0).toFixed(1)}" r="3.6" fill="#e0588c"/>${coins}${stop}
+  </svg>`;
+}
+
+/* ================= cartas: interfaz ================= */
+const choiceEl = document.getElementById("choice");
+const cardsEl = document.getElementById("cards");
+let currentCards = [];
+
+function openChoice(){
+  state = "choose";
+  timeTarget = 0.08;
+  currentCards = genCards();
+  cardsEl.innerHTML = "";
+  currentCards.forEach((seg, i) => {
+    const div = document.createElement("div");
+    div.className = "card" + (mode === "pro" ? " pro" : "");
+    div.tabIndex = 0; div.setAttribute("role", "button");
+    if (mode === "pro"){
+      div.innerHTML = `<span class="key">${i + 1}</span>
+        <div class="formula"><span>${seg.formula}</span></div>
+        <div class="meta">${seg.L} m</div>`;
+    } else {
+      div.innerHTML = `<span class="key">${i + 1}</span>
+        <div class="formula"><span>${seg.formula}</span></div>${cardSVG(seg)}
+        <div class="meta">${seg.kind} · ${seg.L} m</div>`;
+    }
+    div.addEventListener("click", () => chooseCard(i));
+    div.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); chooseCard(i); }
+    });
+    cardsEl.appendChild(div);
+  });
+  choiceEl.style.display = "flex";
+  document.getElementById("vignette").style.opacity = 1;
+}
+function chooseCard(i){
+  if (state !== "choose") return;
+  addSeg(currentCards[i]);
+  lastChoiceX = segs[segs.length - 1].x0;
+  state = "play"; timeTarget = 1;
+  choiceEl.style.display = "none";
+  document.getElementById("vignette").style.opacity = 0;
+  sndPick();
+}
+addEventListener("keydown", e => {
+  if (state === "choose" && ["1", "2", "3"].includes(e.key)) chooseCard(+e.key - 1);
+  if (state === "menu" && (e.key === "Enter" || e.key === " ") && e.target.tagName !== "A")
+    startGame(mode);
+  if (state === "over" && e.key === "Enter") startGame(mode);
+  if (state === "lesson" && (e.key === "Enter" || e.key === " ")) continueLesson();
+  if (e.key === "Escape" && (state === "play" || state === "choose" || state === "lesson")) toMenu();
+});
+
+/* ================= avisos ================= */
+function toast(txt, cls){
+  const t = document.createElement("div");
+  t.className = "toast " + (cls || "");
+  t.textContent = txt;
+  document.getElementById("toasts").appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+/* ================= ciclo de juego ================= */
+function startGame(m){
+  mode = m;
+  if (!AC){ try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+  segs = [];
+  addSeg(lineSeg(-0.35, 80));                   // gran bajada inicial: coge velocidad
+  player = { x: 1, y: trackY(1), v: 1.5, dir: 1,
+    air: false, vx: 0, vy: 0, spin: 0, spinRate: 0, airTime: 0, launchAng: 0, landCool: 0,
+    lowY: trackY(1), vLow: 1.5 };
+  cameraY = player.y;
+  score = 0; coinsTaken = 0; trickPts = 0; lives = 3;
+  stuckT = 0; shakeT = 0; lastChoiceX = 0;
+  unlockedSine = false; unlockedCubic = false;
+  particles = [];
+  timeScale = 1; timeTarget = 1;
+  clearTimeout(lessonTimer);
+  document.getElementById("lesson").style.display = "none";
+  state = "play";
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("over").style.display = "none";
+  document.getElementById("hud").style.display = "block";
+  document.getElementById("toasts").innerHTML = "";
+  document.getElementById("modeBadge").textContent =
+    mode === "pro" ? "MODO PRO ×1,5" : "MODO FÁCIL";
+  updateLives();
+}
+function toMenu(){
+  state = "menu";
+  clearTimeout(lessonTimer);
+  document.getElementById("lesson").style.display = "none";
+  document.getElementById("hud").style.display = "none";
+  choiceEl.style.display = "none";
+  document.getElementById("vignette").style.opacity = 0;
+  document.getElementById("over").style.display = "none";
+  document.getElementById("menu").style.display = "flex";
+}
+document.getElementById("quitBtn").addEventListener("click", toMenu);
+document.getElementById("easyBtn").addEventListener("click", () => startGame("easy"));
+document.getElementById("proBtn").addEventListener("click", () => startGame("pro"));
+document.getElementById("againBtn").addEventListener("click", () => startGame(mode));
+document.getElementById("menuBtn").addEventListener("click", toMenu);
+
+function updateLives(){
+  const el = document.getElementById("lives");
+  el.textContent = "⬤ ".repeat(lives).trim() || "—";
+  el.setAttribute("aria-label", lives === 1 ? "1 vida" : lives + " vidas");
+}
+
+/* ================= física exprés (pausa pedagógica) ================= */
+let lessonNext = "play", lessonTimer = null;
+function buildLesson(kind){
+  const seg = trackSegAt(player.x);
+  const stopU = clamp(player.x - seg.x0, 0, seg.L);
+  const last = segs[segs.length - 1];
+  const endX = last.x0 + last.L;
+  let peak = player.y;
+  for (let i = 0; i <= 100; i++)
+    peak = Math.max(peak, trackY(player.x + (endX - player.x) * i / 100));
+  const hNeed = peak - player.lowY;
+  const hGot = player.vLow * player.vLow / (2 * G);
+  const climbed = Math.max(player.y - player.lowY, 0);
+  let body;
+  if (kind === "flat"){
+    body = `Te paraste en una zona casi llana: sin pendiente negativa que tire de ti,
+      la <b>fricción</b> acaba ganando siempre. Para recuperar velocidad necesitas bajar.`;
+  } else {
+    body = `En tu punto más bajo llevabas <b>${fmtNum(player.vLow, 1)} m/s</b>.
+      Esa energía da para subir como mucho <b>h = v²/(2g) ≈ ${fmtNum(hGot, 1)} m</b>
+      (y la fricción aún descuenta).<br>
+      La pista te pedía subir <b>${fmtNum(hNeed, 1)} m</b>.
+      Subiste ${fmtNum(climbed, 1)} m… y ahí te quedaste.`;
+  }
+  document.getElementById("lessonBody").innerHTML = body;
+  document.getElementById("lessonSVG").innerHTML = cardSVG(seg, stopU);
+}
+function showLesson(next){
+  lessonNext = next;
+  state = "lesson";
+  document.getElementById("lesson").style.display = "flex";
+  document.getElementById("lessonBtn").focus();
+  clearTimeout(lessonTimer);
+  lessonTimer = setTimeout(continueLesson, 8000);
+}
+function continueLesson(){
+  clearTimeout(lessonTimer);
+  document.getElementById("lesson").style.display = "none";
+  if (lessonNext === "over") gameOver(); else state = "play";
+}
+document.getElementById("lessonBtn").addEventListener("click", continueLesson);
+
+function fail(msg, kind){
+  lives--; updateLives(); sndFail();
+  shakeT = reduceMotion ? 0 : 0.45;
+  buildLesson(kind || "climb");                 // captura los datos ANTES del rescate
+  toast(msg + " · " + MINUS + "1 vida", "bad");
+  if (lives > 0){
+    const here = trackSegAt(player.x);
+    here.L = Math.max(player.x - here.x0, 0.5);
+    segs = segs.filter(s => s.x0 <= player.x);
+    addSeg(lineSeg(-0.5, 30));
+    lastChoiceX = segs[segs.length - 1].x0;
+    player.x = lastChoiceX + 0.3;
+    player.y = trackY(player.x);
+    player.dir = 1; player.v = 2.5; player.air = false; stuckT = 0;
+    player.lowY = player.y; player.vLow = player.v;
+    showLesson("play");
+  } else {
+    showLesson("over");
+  }
+}
+
+function gameOver(){
+  state = "over";
+  const total = totalScore();
+  bestScore = Math.max(bestScore, total);
+  document.getElementById("hud").style.display = "none";
+  choiceEl.style.display = "none";
+  document.getElementById("vignette").style.opacity = 0;
+  document.getElementById("fDist").textContent = Math.round(player.x) + " m";
+  document.getElementById("fCoins").textContent = coinsTaken;
+  document.getElementById("fTricks").textContent = trickPts;
+  document.getElementById("fScore").textContent = total;
+  document.getElementById("fBest").textContent = bestScore;
+  document.getElementById("over").style.display = "flex";
+}
+
+/* ================= saltos y piruetas ================= */
+function launch(){
+  const s = trackSlope(player.x);
+  const root = Math.sqrt(1 + s * s);
+  let vx = player.dir * player.v / root;
+  let vy = player.dir * player.v * s / root;
+  // "ollie" moderado: inclinación e impulso a la mitad, punto intermedio entre
+  // el salto puramente tangente del principio y el vuelo grande de la v6.
+  const tilt = player.dir * clamp((player.v - 10) * 0.007, 0.02, 0.15);
+  const c = Math.cos(tilt), sn = Math.sin(tilt);
+  const nvx = vx * c - vy * sn;
+  const nvy = vx * sn + vy * c;
+  player.vx = nvx;
+  player.vy = nvy + clamp((player.v - 10) * 0.06, 0, 1.1);
+  player.air = true;
+  player.airTime = 0; player.spin = 0;
+  player.spinRate = clamp(4.5 + player.v * 0.1, 4.5, 9);
+  player.launchAng = Math.atan(-s);
+  sndJump();
+  spawnSparks(player.x, player.y + 0.2, "#39ff5e", 10);
+}
+function land(){
+  const s = trackSlope(player.x);
+  const root = Math.sqrt(1 + s * s);
+  const vAlong = (player.vx + player.vy * s) / root;
+  player.dir = vAlong >= 0 ? 1 : -1;
+  player.v = Math.max(Math.abs(vAlong) * 0.95, 0.5);
+  player.air = false;
+  player.y = trackY(player.x);
+  player.landCool = 0.18;
+  // pirueta según el tiempo de vuelo
+  const t = player.airTime;
+  let name = null, pts = 0;
+  if (t >= 1.3){ name = "¡900 ROTATION!"; pts = 250; }
+  else if (t >= 0.9){ name = "¡FLIP 720!"; pts = 160; }
+  else if (t >= 0.55){ name = "¡KICKFLIP 360!"; pts = 90; }
+  else if (t >= 0.3){ name = "¡OLLIE!"; pts = 30; }
+  if (name){
+    trickPts += pts;
+    toast(`${name} +${pts}`, "trick");
+    sndTrick();
+    spawnSparks(player.x, player.y + 0.5, "#e0588c", 16);
+  }
+}
+
+/* ================= física ================= */
+function physics(dt){
+  player.landCool = Math.max(0, player.landCool - dt);
+
+  if (player.air){
+    /* ---- vuelo: tiro parabólico de verdad ---- */
+    player.vy -= G * dt;
+    player.x += player.vx * dt;
+    player.y += player.vy * dt;
+    player.airTime += dt;
+    player.spin += player.spinRate * dt;
+    player.v = Math.hypot(player.vx, player.vy);
+    const last = segs[segs.length - 1];
+    const end = last.x0 + last.L;
+    if (state === "play" && end - player.x < TRIGGER) openChoice();
+    if (state === "choose" && player.x > end - 0.4){ player.x = end - 0.4; player.vx = 0; }
+    if (player.y <= trackY(player.x)) land();
+  } else {
+    /* ---- contacto: aceleración tangencial ---- */
+    const s = trackSlope(player.x);
+    const root = Math.sqrt(1 + s * s);
+    const prevSlope = s;
+    const aGrav = -player.dir * G * s / root;
+    const aFric = -(MU * G / root + KD * player.v * player.v);
+    player.v += (aGrav + aFric) * dt;
+    if (player.v <= 0){
+      player.v = 0;
+      // si se para subiendo, su energía ya nunca le permitirá superar ese punto:
+      // pierde la vida al instante, sin oscilar en el valle
+      if (player.dir === 1 && s > 0 && state === "play"){
+        fail("¡Atrapado! Sin energía para subir"); return;
+      }
+      if (Math.abs(s) > MU * 1.5){ player.dir = -player.dir; player.v = 0.05; }
+    }
+    player.v = Math.min(player.v, 32);
+    const segBefore = trackSegAt(player.x);
+    const ds = player.v * dt;
+    player.x += player.dir * ds / root;
+    player.x = Math.max(player.x, 0.2);
+    player.y = trackY(player.x);
+    if (player.y < player.lowY){ player.lowY = player.y; player.vLow = player.v; }
+    const segAfter = trackSegAt(player.x);
+
+    // despegue 1: cresta curva — solo con inercia de verdad y curvatura clara
+    const c = trackCurv(player.x);
+    if (player.landCool === 0 && c < 0 && player.v > 11 &&
+        player.v * player.v * (-c) / (1 + s * s) > G * 1.15){
+      launch();
+    }
+    // despegue 2: quiebro brusco real entre tramos — el suelo se hunde de golpe.
+    // Una bajada que empalma con otra bajada parecida NO lanza.
+    else if (player.landCool === 0 && segAfter !== segBefore && player.dir > 0 && player.v > 12){
+      const sNew = segAfter.df(0);
+      if (prevSlope - sNew > 0.5 && prevSlope > -0.35) launch();
+    }
+    if (!player.air && segAfter !== segBefore && player.v > 8)
+      spawnSparks(player.x, player.y + 0.1, "#ffd25a", 6);   // grind en la costura
+
+    // atascado / retroceso
+    if (player.v < 0.4 && state === "play"){ stuckT += dt; } else stuckT = 0;
+    if (stuckT > 1.0){ fail("¡Atascado!", "flat"); return; }
+    if (player.dir < 0 && player.x <= lastChoiceX + 0.25 && state === "play"){
+      fail("¡Sin velocidad para subir!"); return;
+    }
+  }
+
+  // desbloqueo de familias
+  if (!unlockedSine && player.x > SINE_AT){
+    unlockedSine = true; toast("Nueva familia: senos · f(x) = A·sen(Bx)", "gold");
+  }
+  if (!unlockedCubic && player.x > CUBIC_AT){
+    unlockedCubic = true; toast("Nueva familia: cúbicas · grado 3", "gold");
+  }
+
+  // monedas (también se cogen en el aire si pasas a su altura)
+  for (const seg of segs){
+    for (const cn of seg.coins){
+      if (cn.taken) continue;
+      const cx = seg.x0 + cn.u;
+      const cy = trackY(cx) + 1.15;
+      if (Math.abs(cx - player.x) < 0.9 && Math.abs(player.y - cy) < 1.9){
+        cn.taken = true; coinsTaken++; sndCoin();
+        toast((cn.tag ? cn.tag + " " : "") + "+50", "gold");
+        spawnSparks(cx, cy, "#ffd25a", 14);
+      }
+    }
+  }
+
+  // abrir cartas cerca del final de la pista (en el suelo)
+  if (!player.air){
+    const last = segs[segs.length - 1];
+    const end = last.x0 + last.L;
+    if (state === "play" && player.dir > 0 && end - player.x < TRIGGER) openChoice();
+    if (state === "choose" && player.x > end - 0.4){
+      player.x = end - 0.4; player.v = Math.min(player.v, 4);
+    }
+  }
+}
+
+/* ================= partículas ================= */
+function spawnSparks(wx, wy, col, n){
+  if (reduceMotion) n = Math.min(n, 4);
+  for (let i = 0; i < n; i++)
+    particles.push({ x: wx, y: wy, vx: rand(-3, 3), vy: rand(1, 5),
+      life: rand(.4, .9), t: 0, col, r: rand(1.5, 3) });
+}
+function trailParticles(dt){
+  if (reduceMotion || player.v < 6) return;
+  const col = player.air ? "#7dff8e"
+    : player.v < 12 ? "#5ff2e6" : player.v < 20 ? "#39ff5e" : "#ffffff";
+  const n = Math.min(3, Math.floor(player.v / 8));
+  for (let i = 0; i < n; i++)
+    particles.push({ x: player.x + rand(-.3, .1), y: player.y + rand(0, .25),
+      vx: -player.dir * rand(1, 3), vy: rand(.5, 2),
+      life: rand(.25, .55), t: 0, col, r: rand(1, 2.2) });
+}
+
+/* ================= dibujo ================= */
+const PPM = () => clamp(W / 64, 11, 22);
+
+function buildSkyline(seed, n, hMin, hMax){
+  let s = seed; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const arr = [];
+  for (let i = 0; i < n; i++)
+    arr.push({ w: 30 + rnd() * 80, h: hMin + rnd() * (hMax - hMin),
+      gap: rnd() * 26, ant: rnd() < .3 });
+  return arr;
+}
+const skyA = buildSkyline(1234, 40, 60, 170);
+const skyB = buildSkyline(987, 40, 110, 260);
+function drawSkyline(arr, factor, baseY, col, camX){
+  ctx.fillStyle = col;
+  let total = 0; for (const b of arr) total += b.w + b.gap;
+  let off = -((camX * factor) % total);
+  if (off > 0) off -= total;
+  let x = off;
+  while (x < W){
+    for (const b of arr){
+      if (x + b.w > 0 && x < W){
+        ctx.fillRect(x, baseY - b.h, b.w, b.h + 400);
+        if (b.ant) ctx.fillRect(x + b.w / 2 - 1.5, baseY - b.h - 18, 3, 18);
+      }
+      x += b.w + b.gap;
+      if (x > W) break;
+    }
+  }
+}
+
+function draw(now){
+  const ppm = PPM();
+  const camX = player ? player.x - W / ppm * 0.32 : 0;
+  if (player) cameraY += (player.y - cameraY) * 0.06;
+  const horizon = H * 0.52;
+  const wx2sx = wx => (wx - camX) * ppm;
+  const wy2sy = wy => horizon - (wy - cameraY) * ppm;
+
+  let shX = 0, shY = 0;
+  if (shakeT > 0){ shX = rand(-1, 1) * shakeT * 9; shY = rand(-1, 1) * shakeT * 9; }
+  ctx.save();
+  ctx.translate(shX, shY);
+
+  // cielo
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#2a1650");
+  g.addColorStop(0.38, "#7a3a7e");
+  g.addColorStop(0.62, "#e0588c");
+  g.addColorStop(0.85, "#ffb35c");
+  ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
+
+  // sol bajo
+  const sunX = W * 0.68, sunY = H * 0.58;
+  const sg = ctx.createRadialGradient(sunX, sunY, 6, sunX, sunY, H * 0.34);
+  sg.addColorStop(0, "rgba(255,236,180,.95)");
+  sg.addColorStop(0.18, "rgba(255,179,92,.55)");
+  sg.addColorStop(1, "rgba(255,179,92,0)");
+  ctx.fillStyle = sg;
+  ctx.beginPath(); ctx.arc(sunX, sunY, H * 0.34, 0, 7); ctx.fill();
+  ctx.fillStyle = "rgba(255,240,200,.9)";
+  ctx.beginPath(); ctx.arc(sunX, sunY, H * 0.045, 0, 7); ctx.fill();
+
+  // estrellas
+  ctx.fillStyle = "rgba(244,236,255,.5)";
+  for (let i = 0; i < 26; i++){
+    const sx = (i * 173.3) % W, sy = (i * 97.7) % (H * 0.3);
+    ctx.globalAlpha = 0.35 + 0.3 * Math.sin(now / 700 + i);
+    ctx.fillRect(sx, sy, 1.6, 1.6);
+  }
+  ctx.globalAlpha = 1;
+
+  drawSkyline(skyB, 0.16, H * 0.66, "rgba(70,38,110,.55)", camX * ppm);
+  drawSkyline(skyA, 0.34, H * 0.74, "rgba(40,20,72,.85)", camX * ppm);
+
+  if (player){
+    // pista
+    const x0w = camX - 2, x1w = camX + W / ppm + 2;
+    const step = 3 / ppm;
+    ctx.beginPath();
+    for (let wx = x0w, first = true; wx <= x1w; wx += step){
+      const sy = wy2sy(trackY(wx));
+      first ? ctx.moveTo(wx2sx(wx), sy) : ctx.lineTo(wx2sx(wx), sy);
+      first = false;
+    }
+    ctx.save();
+    ctx.lineTo(wx2sx(x1w), H + 40); ctx.lineTo(wx2sx(x0w), H + 40); ctx.closePath();
+    const fg = ctx.createLinearGradient(0, horizon - 60, 0, H);
+    fg.addColorStop(0, "rgba(36,18,66,.92)");
+    fg.addColorStop(1, "rgba(14,6,32,.97)");
+    ctx.fillStyle = fg; ctx.fill();
+    ctx.restore();
+    ctx.beginPath();
+    for (let wx = x0w, first = true; wx <= x1w; wx += step){
+      const sy = wy2sy(trackY(wx));
+      first ? ctx.moveTo(wx2sx(wx), sy) : ctx.lineTo(wx2sx(wx), sy);
+      first = false;
+    }
+    ctx.shadowColor = "#5ff2e6"; ctx.shadowBlur = 16;
+    ctx.strokeStyle = "#5ff2e6"; ctx.lineWidth = 3; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 1.1; ctx.stroke();
+
+    // costuras entre tramos
+    ctx.fillStyle = "rgba(224,88,140,.9)";
+    for (const seg of segs){
+      if (seg.x0 > x0w && seg.x0 < x1w){
+        ctx.beginPath(); ctx.arc(wx2sx(seg.x0), wy2sy(seg.y0), 3.2, 0, 7); ctx.fill();
+      }
+    }
+
+    // monedas
+    for (const seg of segs){
+      for (const c of seg.coins){
+        if (c.taken) continue;
+        const wx = seg.x0 + c.u;
+        if (wx < x0w || wx > x1w) continue;
+        const sx = wx2sx(wx), sy = wy2sy(trackY(wx) + 1.15);
+        const pul = 1 + 0.12 * Math.sin(now / 200 + wx);
+        ctx.shadowColor = "#ffd25a"; ctx.shadowBlur = 12;
+        ctx.fillStyle = "#ffd25a";
+        ctx.beginPath(); ctx.arc(sx, sy, 6.5 * pul, 0, 7); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#7a5a10";
+        ctx.font = "bold 8px system-ui, sans-serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("ƒ", sx, sy + 0.5);
+      }
+    }
+
+    // partículas
+    for (const p of particles){
+      ctx.globalAlpha = (1 - p.t / p.life) * 0.85;
+      ctx.fillStyle = p.col;
+      ctx.beginPath(); ctx.arc(wx2sx(p.x), wy2sy(p.y), p.r, 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // skater
+    let ang;
+    if (player.air){
+      ang = player.launchAng - player.dir * player.spin;   // pirueta
+    } else {
+      const s = trackSlope(player.x);
+      ang = Math.atan(-s) + (player.dir > 0 ? 1 : -1) * clamp(player.v, 0, 28) * 0.004;
+    }
+    const px = wx2sx(player.x), py = wy2sy(player.y);
+    ctx.save();
+    ctx.translate(px, py); ctx.rotate(ang);
+    if (player.dir < 0) ctx.scale(-1, 1);
+    ctx.lineCap = "round";
+    // tabla dorada con brillo
+    ctx.shadowColor = "#ffd25a"; ctx.shadowBlur = 10;
+    ctx.strokeStyle = "#ffd25a"; ctx.lineWidth = 3.4;
+    ctx.beginPath(); ctx.moveTo(-10, -3); ctx.lineTo(10, -3); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(-6, 0, 2.4, 0, 7); ctx.arc(6, 0, 2.4, 0, 7); ctx.fill();
+    // cuerpo en verde fosforito
+    ctx.shadowColor = "#39ff5e"; ctx.shadowBlur = 14;
+    ctx.strokeStyle = "#39ff5e"; ctx.lineWidth = 3;
+    if (player.air){
+      ctx.beginPath();                          // agarra la tabla: postura encogida
+      ctx.moveTo(-5, -4); ctx.lineTo(-2, -9); ctx.lineTo(0, -12);
+      ctx.moveTo(5, -4); ctx.lineTo(3, -9); ctx.lineTo(0, -12);
+      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(3, -19); ctx.stroke();
+      ctx.beginPath();                          // un brazo a la tabla, otro al aire
+      ctx.moveTo(2, -17); ctx.lineTo(7, -5);
+      ctx.moveTo(2, -17); ctx.lineTo(-5, -22);
+      ctx.stroke();
+      ctx.fillStyle = "#b6ffc4";
+      ctx.beginPath(); ctx.arc(5, -23, 3.6, 0, 7); ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(-5, -4); ctx.lineTo(-2, -10); ctx.lineTo(0, -14);
+      ctx.moveTo(5, -4); ctx.lineTo(3, -10); ctx.lineTo(0, -14);
+      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(4, -23); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(3, -21); ctx.lineTo(-4, -18);
+      ctx.moveTo(3, -21); ctx.lineTo(9, -16);
+      ctx.stroke();
+      ctx.fillStyle = "#b6ffc4";
+      ctx.beginPath(); ctx.arc(6, -27, 3.6, 0, 7); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ================= bucle principal ================= */
+let lastT = performance.now();
+function loop(now){
+  let dt = Math.min((now - lastT) / 1000, 0.033);
+  lastT = now;
+  timeScale += (timeTarget - timeScale) * Math.min(1, dt * 7);
+  if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
+
+  if (state === "play" || state === "choose"){
+    const sdt = dt * timeScale;
+    physics(sdt);
+    trailParticles(sdt);
+    for (const p of particles){
+      p.t += dt; p.x += p.vx * sdt; p.y += p.vy * sdt; p.vy -= 9 * sdt;
+    }
+    particles = particles.filter(p => p.t < p.life);
+    if (particles.length > 220) particles.splice(0, particles.length - 220);
+    if (state === "play" || state === "choose"){
+      document.querySelector("#vel .val").innerHTML =
+        player.v.toFixed(1).replace(".", ",") + "<small>m/s</small>";
+      document.querySelector("#dist .val").innerHTML =
+        Math.round(player.x) + "<small>m</small>";
+      const slopeVal = document.getElementById("slopeVal");
+      const slopeArrow = document.getElementById("slopeArrow");
+      const slopeBox = document.querySelector("#slope .val");
+      if (player.air){
+        slopeVal.textContent = "vuelo";
+        slopeArrow.style.transform = `rotate(${Math.atan2(-player.vy, player.vx || 0.01)}rad)`;
+        slopeBox.style.color = "#ffd25a";
+      } else {
+        const sN = trackSlope(player.x);
+        slopeVal.textContent = (sN < 0 ? MINUS : "+") + fmtNum(sN, 2);
+        slopeArrow.style.transform = `rotate(${Math.atan(-sN)}rad)`;
+        slopeBox.style.color = sN <= 0 ? "var(--neon)" : "#ff6fae";
+      }
+      document.querySelector("#score .val").textContent = totalScore();
+    }
+  }
+  draw(now);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

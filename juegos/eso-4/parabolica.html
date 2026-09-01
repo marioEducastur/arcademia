@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parabólica · Arcademia</title>
+<!--
+  Juego: Parabólica — escribe la parábola, lanza el búho
+  Curso: 4.º ESO · Tema: La función cuadrática (forma factorizada,
+  forma de vértice y forma general: raíces, vértice y paso por puntos)
+  Origen: aportado por el profesor (prototipo, no procede de mat1);
+  autocontenido: canvas y WebAudio nativos, sin dependencias externas
+  y con tipografías del sistema desde el propio prototipo.
+  Estética propia de tirachinas de aldea: se conserva a propósito.
+-->
+<style>
+:root{
+  --madera:#7a4c22; --madera-cl:#a36831; --madera-luz:#b07a3e; --madera-osc:#4a2c11;
+  --crema:#fff4dc; --crema-2:#e8d3a8; --tinta:#2b1a0c;
+  --coral:#e8563f; --coral-osc:#b53826; --oro:#ffc229; --oro-osc:#d99400;
+  --verde:#7ac142; --verde-osc:#4d8b25; --cielo:#59c4f2;
+  --ui: "Trebuchet MS", "Segoe UI", Verdana, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Consolas, monospace;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0; height:100%; overflow:hidden}
+body{
+  background:#2b1a0c; font-family:var(--ui); color:var(--crema);
+  user-select:none; -webkit-user-select:none;
+}
+#app{display:flex; flex-direction:column; height:100dvh; width:100%}
+
+/* ---------------- escenario ---------------- */
+#lienzo-caja{position:relative; flex:1 1 auto; min-height:0; overflow:hidden; background:#59c4f2}
+canvas{display:block; width:100%; height:100%}
+
+/* ---------------- barra superior ---------------- */
+#superior{
+  position:absolute; top:0; left:0; right:0; padding:8px 10px;
+  display:flex; align-items:flex-start; gap:8px; pointer-events:none; z-index:5;
+}
+.chapa{
+  pointer-events:auto; background:linear-gradient(#8a5a2c,#6b4220);
+  border:3px solid var(--madera-osc); border-radius:12px; padding:6px 12px;
+  box-shadow:0 3px 0 #3a2109, 0 6px 12px rgba(0,0,0,.3), inset 0 2px 0 rgba(255,255,255,.22);
+}
+#tituloNivel{display:flex; flex-direction:column; gap:2px; min-width:0}
+#tituloNivel .n{font-size:10px; letter-spacing:.18em; color:var(--oro); text-transform:uppercase; font-weight:700}
+#tituloNivel .t{font-size:16px; font-weight:800; color:var(--crema); letter-spacing:.01em; line-height:1.15}
+#contadores{display:flex; gap:8px; margin-left:auto; align-items:flex-start}
+.marcador{display:flex; align-items:center; gap:6px; font-weight:800; font-size:15px}
+.marcador .icono{font-size:17px; line-height:1}
+#botonera{display:flex; gap:6px}
+.icobtn{
+  pointer-events:auto; width:38px; height:38px; border-radius:11px; cursor:pointer;
+  background:linear-gradient(#8a5a2c,#6b4220); border:3px solid var(--madera-osc);
+  color:var(--crema); font-size:16px; font-weight:800; display:grid; place-items:center;
+  box-shadow:0 3px 0 #3a2109, inset 0 2px 0 rgba(255,255,255,.22); transition:transform .08s;
+}
+.icobtn:active{transform:translateY(3px); box-shadow:0 0 0 #3a2109, inset 0 2px 0 rgba(255,255,255,.22)}
+.icobtn[aria-pressed="true"]{background:linear-gradient(#f0a92b,#d98b12); color:#3a2109}
+.icobtn:focus-visible{outline:3px solid #fff; outline-offset:2px}
+a.icobtn{text-decoration:none}
+
+/* ---------------- consola de tiro ---------------- */
+#consola{
+  flex:0 0 auto; position:relative; z-index:6;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, transparent 2px 26px),
+    linear-gradient(#8a5a2c,#6b4220 55%,#573418);
+  border-top:5px solid var(--madera-osc);
+  box-shadow:0 -6px 18px rgba(0,0,0,.35), inset 0 3px 0 rgba(255,255,255,.16);
+  padding:10px 12px 12px;
+}
+#consola-in{max-width:1080px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+#formas{display:flex; gap:0; border:3px solid var(--madera-osc); border-radius:11px; overflow:hidden; flex:0 0 auto}
+#formas button{
+  background:#4a2c11; border:0; color:#c9a877; padding:9px 13px; cursor:pointer;
+  font-family:var(--ui); font-size:12px; font-weight:800; letter-spacing:.03em; transition:.12s;
+}
+#formas button+button{border-left:3px solid var(--madera-osc)}
+#formas button[aria-pressed="true"]{background:linear-gradient(#ffd05a,#f0a92b); color:#3a2109}
+#formas button:focus-visible{outline:2px solid #fff; outline-offset:-4px}
+#formas.oculto{display:none}
+
+#ecuacion{
+  flex:1 1 340px; display:flex; align-items:center; gap:5px; flex-wrap:wrap;
+  background:#3d2410; border:3px solid var(--madera-osc); border-radius:11px;
+  padding:9px 12px; min-height:56px;
+  box-shadow:inset 0 3px 8px rgba(0,0,0,.45);
+}
+#ecuacion .lit{font-size:21px; font-weight:800; color:var(--crema-2); font-family:var(--mono)}
+#ecuacion .lit.sub{color:#a98a5f; font-size:19px}
+.campo{
+  width:88px; padding:7px 4px; text-align:center; font-family:var(--mono); font-size:19px; font-weight:800;
+  background:var(--crema); color:var(--tinta); border:3px solid var(--madera-osc); border-radius:8px;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.12);
+}
+.campo:focus{outline:0; border-color:var(--oro); background:#fffdf5; box-shadow:0 0 0 3px rgba(255,194,41,.45)}
+.campo.mal{border-color:var(--coral); background:#ffe6e1; animation:tiembla .3s}
+@keyframes tiembla{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+#acciones{display:flex; gap:8px; align-items:center; flex:0 0 auto}
+.btn{
+  cursor:pointer; font-family:var(--ui); font-weight:800; letter-spacing:.04em;
+  border-radius:12px; border:3px solid var(--madera-osc); padding:12px 18px; font-size:14px;
+  background:linear-gradient(#8a5a2c,#6b4220); color:var(--crema);
+  box-shadow:0 4px 0 #3a2109, inset 0 2px 0 rgba(255,255,255,.2); transition:transform .08s, box-shadow .08s;
+}
+.btn:active{transform:translateY(4px); box-shadow:0 0 0 #3a2109, inset 0 2px 0 rgba(255,255,255,.2)}
+.btn:focus-visible{outline:3px solid #fff; outline-offset:2px}
+.btn.disparo{
+  background:linear-gradient(#ff7a5c,#e8563f); border-color:#8d2a1a; color:#fff;
+  box-shadow:0 4px 0 #8d2a1a, inset 0 2px 0 rgba(255,255,255,.3); font-size:16px; padding:13px 24px;
+  text-shadow:0 2px 0 rgba(0,0,0,.25);
+}
+.btn.disparo:active{box-shadow:0 0 0 #8d2a1a, inset 0 2px 0 rgba(255,255,255,.3)}
+.btn.disparo[disabled]{opacity:.45; pointer-events:none}
+.btn.chico{padding:10px 13px; font-size:12.5px}
+
+#aviso{
+  flex:1 1 100%; font-size:13px; font-weight:700; color:#ffd9a0; min-height:0;
+  display:none; align-items:center; gap:7px; padding:2px 2px 0;
+}
+#aviso.ver{display:flex}
+#lectura{
+  flex:1 1 100%; font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:.01em;
+  color:#e9c894; padding:3px 4px 0; display:flex; gap:14px; flex-wrap:wrap; min-height:18px;
+}
+#lectura span{white-space:nowrap}
+#lectura b{color:#fff6dc; font-weight:800}
+#lectura .apagado{color:#a9865a}
+#aviso b{color:#fff; background:rgba(0,0,0,.28); padding:1px 6px; border-radius:5px; font-family:var(--mono)}
+#aviso .arreglar{
+  cursor:pointer; background:var(--oro); color:#3a2109; border:2px solid #a86f00;
+  border-radius:7px; padding:3px 9px; font-weight:800; font-size:12px; font-family:var(--ui);
+}
+
+/* ---------------- paneles ---------------- */
+#velo{
+  position:absolute; inset:0; z-index:20; display:none; place-items:center;
+  background:rgba(28,16,6,.72); backdrop-filter:blur(3px); padding:18px; overflow:auto;
+}
+#velo.ver{display:grid}
+.panel{
+  width:min(560px,100%); background:linear-gradient(#fff8ea,#f3e2c2);
+  border:5px solid var(--madera-osc); border-radius:20px; color:var(--tinta);
+  box-shadow:0 10px 0 #3a2109, 0 26px 50px rgba(0,0,0,.5); padding:24px 26px 22px; text-align:center;
+}
+.panel h2{margin:0 0 4px; font-size:29px; font-weight:900; letter-spacing:.01em; color:#5b3410}
+.panel .lema{margin:0 0 16px; font-size:14.5px; color:#7a5a34; font-weight:700; line-height:1.45}
+.panel p{font-size:14.5px; line-height:1.6; margin:11px 0; text-align:left; color:#513a1e}
+.panel li{color:#513a1e}
+.panel ul{text-align:left; margin:10px 0; padding-left:20px; font-size:14px; line-height:1.65}
+.panel .regla{
+  background:#3d2410; color:var(--crema); border-radius:12px; padding:12px 14px; margin:14px 0;
+  font-family:var(--mono); font-size:15px; font-weight:800; letter-spacing:.02em;
+}
+.panel .regla small{display:block; font-family:var(--ui); font-size:12px; color:#d9b98a; margin-top:5px; font-weight:600; letter-spacing:0}
+.estrellas{display:flex; justify-content:center; gap:10px; margin:8px 0 14px; font-size:46px; line-height:1}
+.estrellas span{color:#d8cbb4; text-shadow:0 3px 0 rgba(0,0,0,.12)}
+.estrellas span.on{color:var(--oro); text-shadow:0 3px 0 var(--oro-osc), 0 0 22px rgba(255,194,41,.75); animation:pop .4s backwards}
+.estrellas span.on:nth-child(2){animation-delay:.14s} .estrellas span.on:nth-child(3){animation-delay:.28s}
+@keyframes pop{0%{transform:scale(0) rotate(-40deg); opacity:0}70%{transform:scale(1.25) rotate(6deg)}100%{transform:scale(1)}}
+.panel .botones{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px}
+.solucion{
+  background:#fff; border:3px dashed #c9a877; border-radius:10px; padding:9px 12px; margin-top:12px;
+  font-family:var(--mono); font-size:15px; font-weight:800; color:#5b3410;
+}
+/* selector de niveles */
+.rejilla{display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:11px; margin-top:8px}
+.tarjeta{
+  cursor:pointer; background:linear-gradient(#8a5a2c,#6b4220); border:3px solid var(--madera-osc);
+  border-radius:13px; padding:11px 8px; color:var(--crema); text-align:center;
+  box-shadow:0 4px 0 #3a2109; transition:transform .1s;
+}
+.tarjeta:hover{transform:translateY(-2px)}
+.tarjeta:active{transform:translateY(3px); box-shadow:0 1px 0 #3a2109}
+.tarjeta .num{font-size:10px; letter-spacing:.16em; color:var(--oro); font-weight:800}
+.tarjeta .nom{font-size:12.5px; font-weight:800; line-height:1.25; margin:4px 0 6px; min-height:31px; display:flex; align-items:center; justify-content:center}
+.tarjeta .est{font-size:14px; color:var(--oro); letter-spacing:1px}
+.tarjeta .est i{color:#4a2c11; font-style:normal}
+.tarjeta .forma{font-size:9.5px; color:#e0c49a; letter-spacing:.1em; text-transform:uppercase; font-weight:800}
+.pie-marca{margin-top:16px; font-size:10.5px; letter-spacing:.22em; color:#a08258; text-transform:uppercase; font-weight:800}
+.pie-marca a{color:inherit}
+
+@media (max-width:720px){
+  #lienzo-caja{flex:0 0 56vh}
+  #consola{flex:1 1 auto; display:flex; align-items:center; padding:10px 10px 14px}
+  #consola-in{gap:9px; width:100%}
+  #superior{padding:6px 7px; gap:6px; flex-wrap:wrap}
+  .chapa{padding:5px 9px; border-radius:10px}
+  #tituloNivel .n{font-size:9px; letter-spacing:.12em}
+  #tituloNivel .t{font-size:13px}
+  .icobtn{width:34px; height:34px; font-size:14px; border-radius:9px}
+  .marcador{font-size:14px}
+  #lectura{font-size:11.5px; gap:10px}
+  #ecuacion{flex:1 1 100%; order:2; min-height:50px; padding:7px 9px}
+  #formas{order:1; flex:1 1 100%; justify-content:center}
+  #formas button{flex:1}
+  #acciones{order:3; flex:1 1 100%; justify-content:center}
+  #aviso{order:4}
+  .campo{width:74px; font-size:17px; padding:6px 3px}
+  #ecuacion .lit{font-size:17px}
+  #tituloNivel .t{font-size:14px}
+  .panel h2{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important} }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="lienzo-caja">
+    <canvas id="cv"></canvas>
+    <div id="superior">
+      <div class="chapa" id="tituloNivel">
+        <span class="n" id="numNivel">Nivel 1</span>
+        <span class="t" id="nomNivel">El primer vuelo</span>
+      </div>
+      <div id="contadores">
+        <div class="chapa marcador" title="Búhos que te quedan"><span class="icono">🦉</span><span id="cPajaros">1</span></div>
+        <div class="chapa marcador" title="Enemigos en pie"><span class="icono">👾</span><span id="cEnemigos">1</span></div>
+      </div>
+      <div id="botonera">
+        <a class="icobtn" id="bVolver" href="../../index.html" aria-label="Volver al salón Arcademia" title="Volver a Arcademia">←</a>
+        <button class="icobtn" id="bEjes" aria-pressed="true" aria-label="Ejes y cuadrícula" title="Ejes y cuadrícula (E)">⊞</button>
+        <button class="icobtn" id="bSonido" aria-pressed="true" aria-label="Sonido" title="Sonido (S)">🔊</button>
+        <button class="icobtn" id="bNiveles" aria-label="Niveles" title="Niveles (N)">☰</button>
+      </div>
+    </div>
+    <div id="velo"><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+  </div>
+
+  <div id="consola">
+    <div id="consola-in">
+      <div id="formas">
+        <button data-forma="fact" aria-pressed="true">Factorizada</button>
+        <button data-forma="vert" aria-pressed="false">Vértice</button>
+        <button data-forma="gen"  aria-pressed="false">General</button>
+      </div>
+      <div id="ecuacion"></div>
+      <div id="acciones">
+        <button class="btn disparo" id="bDisparo">LANZAR</button>
+        <button class="btn chico" id="bBoceto" title="Dibuja la curva entera, pero te cuesta una estrella">Boceto</button>
+        <button class="btn chico" id="bPista" title="Pista">?</button>
+      </div>
+      <div id="aviso" role="status" aria-live="polite"></div>
+      <div id="lectura"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var REDUCIDO = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+/* ==========================================================================
+   MUNDO Y CONSTANTES
+   ========================================================================== */
+var VISTA = { x0:-3.2, x1:25, y0:-1.8, y1:14.2 };
+var R_PAJARO = 0.55, R_ENEMIGO = 0.60, G = 9.8;
+var MAT = {
+  madera:{ vida:3.0, coste:1.4, col:"#d99b4e", col2:"#b87a35", borde:"#5a3512", veta:"#a86a2a" },
+  hielo :{ vida:1.6, coste:0.8, col:"#a9e4f7", col2:"#7fd0ee", borde:"#3f7f96", veta:"#ffffff" },
+  piedra:{ vida:9.0, coste:8.0, col:"#a8b1b8", col2:"#828d96", borde:"#4b555d", veta:"#6f7b85" }
+};
+var IMPULSO = 7.2;
+var REPOSO = 0.36;   // solo estético: dónde se posa el búho antes de salir
+
+/* ==========================================================================
+   NIVELES
+   ========================================================================== */
+function fila(x0,y,n,w,h,mat){ var a=[],i; for(i=0;i<n;i++) a.push({x:x0+i*w, y:y, w:w, h:h, mat:mat}); return a; }
+function col(x,y0,n,w,h,mat){ var a=[],i; for(i=0;i<n;i++) a.push({x:x, y:y0+i*h, w:w, h:h, mat:mat}); return a; }
+function techo(x0,y,n,w,h,mat){ var a=[],i; for(i=0;i<n;i++) a.push({x:x0+i*w, y:y, w:w, h:h, mat:mat, fijo:true}); return a; }
+
+var NIVELES = [
+{
+  nombre:"El primer vuelo", lema:"Las raíces son los sitios donde la parábola toca el suelo.",
+  formas:["fact"], pajaros:2, minPajaros:1,
+  intro:"El tirachinas está en el origen y el suelo es el eje X. Si escribes una parábola con una raíz justo encima del enemigo, el búho aterriza ahí.",
+  pista:"El enemigo está en x = 13. Pon una raíz ahí y deja la otra en 0.",
+  enemigos:[{x:13}],
+  bloques:[{x:14.2,y:0,w:0.9,h:0.9,mat:"madera"},{x:14.2,y:0.9,w:0.9,h:0.9,mat:"madera"}],
+  aros:[], sol:{forma:"fact", v:[-0.06, 0, 13]}
+},
+{
+  nombre:"Tres de una", lema:"Un búho por raíz.", formas:["fact"], pajaros:3, minPajaros:3,
+  intro:"Tres enemigos, tres búhos. Cada disparo necesita su propia raíz.",
+  pista:"Están en x = 7, x = 12,5 y x = 18. Cambia la segunda raíz en cada lanzamiento.",
+  enemigos:[{x:7},{x:12.5},{x:18}],
+  bloques:[{x:8,y:0,w:0.9,h:0.9,mat:"hielo"},{x:13.5,y:0,w:0.9,h:0.9,mat:"madera"},{x:19,y:0,w:0.9,h:0.9,mat:"hielo"}],
+  aros:[], sol:{forma:"fact", v:[-0.06, 0, 7]}
+},
+{
+  nombre:"El muro", lema:"La raíz dice dónde caes; la a, cuánto subes.",
+  formas:["fact"], pajaros:3, minPajaros:1,
+  intro:"La raíz te lleva al enemigo, pero hay un muro de piedra en medio. Necesitas que la parábola sea más alta: eso lo manda la a.",
+  pista:"Con raíces 0 y 16, la altura en x = 8 vale −64·a. El muro mide 5,2 m: necesitas |a| mayor que 0,09.",
+  enemigos:[{x:16}],
+  bloques:[].concat(col(7.6,0,4,0.9,1.3,"piedra"), [{x:17,y:0,w:0.9,h:0.9,mat:"madera"}]),
+  aros:[], sol:{forma:"fact", v:[-0.1, 0, 16]}
+},
+{
+  nombre:"Entre el muro y el techo", lema:"El vértice es la cima del vuelo.",
+  formas:["vert"], pajaros:3, minPajaros:1,
+  intro:"Ahora escribes la parábola por su vértice. Tiene que subir lo justo: pasar por encima del muro y por debajo del techo.",
+  pista:"El enemigo está en x = 20 y la cima cae siempre a mitad de camino: h = 10. Elige k = 5 y despeja a con la regla de oro.",
+  enemigos:[{x:20}],
+  bloques:[].concat(col(12.6,0,3,0.9,1.2,"piedra"), techo(3,6,10,1.9,0.8,"piedra"),
+                    [{x:21,y:0,w:0.9,h:0.9,mat:"hielo"}]),
+  aros:[], sol:{forma:"vert", v:[-0.05, 10, 5]}
+},
+{
+  nombre:"La rendija", lema:"Techo bajo, muro alto y un solo hueco.",
+  formas:["vert"], pajaros:3, minPajaros:1,
+  intro:"Mismo juego, menos sitio. Si sale del origen y cae en r, la cima está en h = r/2 — y eso te fija todo lo demás.",
+  pista:"Enemigo en x = 16, así que h = 8. Con k = 4 sale a = −4/64 = −0,0625.",
+  enemigos:[{x:16}],
+  bloques:[].concat(col(10.6,0,2,0.9,1.3,"piedra"), techo(4,5.2,9,2,0.8,"piedra"),
+                    [{x:17,y:0,w:0.9,h:0.9,mat:"madera"},{x:17,y:0.9,w:0.9,h:0.9,mat:"madera"}]),
+  aros:[], sol:{forma:"vert", v:[-0.0625, 8, 4]}
+},
+{
+  nombre:"Los dos aros", lema:"Dos puntos, dos ecuaciones, dos incógnitas.",
+  formas:["gen"], pajaros:3, minPajaros:1,
+  intro:"Atraviesa los dos aros y remata al enemigo. Sabes que c = 0, así que solo te quedan a y b: mete cada aro en y = ax² + bx y resuelve el sistema.",
+  pista:"16a + 4b = 3 y 144a + 12b = 3. Sale a = −1/16 = −0,0625 y b = 1.",
+  enemigos:[{x:16}],
+  bloques:[{x:17,y:0,w:0.9,h:0.9,mat:"hielo"}],
+  aros:[{x:4,y:3},{x:12,y:3}], sol:{forma:"gen", v:[-0.0625, 1, 0]}
+},
+{
+  nombre:"Dos pájaros de un tiro", lema:"Una raíz y un punto de paso.",
+  formas:["fact","gen"], pajaros:3, minPajaros:1,
+  intro:"Uno abajo del todo, otro en la torre. Con un solo búho se puede: la raíz te da el del suelo y la a la ajustas para pasar por el de arriba.",
+  pista:"Raíces 0 y 20. Para pasar por (15, 6): a·15·(15−20) = 6, o sea −75a = 6 → a = −0,08.",
+  enemigos:[{x:20},{x:15, y:6}],
+  bloques:[].concat(col(14.6,0,6,0.9,1.0,"madera"), [{x:21,y:0,w:0.9,h:0.9,mat:"madera"}]),
+  aros:[], sol:{forma:"fact", v:[-0.08, 0, 20]}
+},
+{
+  nombre:"El asedio", lema:"Todo lo aprendido, contra un castillo.",
+  formas:["fact","vert","gen"], pajaros:4, minPajaros:3,
+  intro:"Sin instrucciones. Elige en cada disparo la forma que más te convenga: la factorizada para los del suelo, el vértice para el de la plataforma.",
+  pista:"Los de abajo caen con raíces en 13,2 · 16 · 20,6. Para el de la plataforma usa el vértice: ponlo justo encima de él, en h = 16,4 y k = 5,5.",
+  enemigos:[{x:13.2},{x:16},{x:20.6},{x:16.4, y:4.9}],
+  bloques:[].concat(
+    col(14.4,0,4,0.9,1.0,"hielo"), col(17.4,0,4,0.9,1.0,"hielo"),
+    techo(13.9,4.0,6,0.9,0.9,"madera"),   // plataforma fija: los caballetes no sostienen las 6 tablas y el castillo se caía solo al primer disparo
+    [{x:22.0,y:0,w:0.9,h:0.9,mat:"madera"},{x:22.0,y:0.9,w:0.9,h:0.9,mat:"hielo"}]),
+  aros:[], sol:{forma:"fact", v:[-0.06, 0, 13.2]}
+}
+];
+
+var LIBRE = {
+  nombre:"Modo libre", lema:"Escribe lo que quieras y mira qué pasa.",
+  formas:["fact","vert","gen"], pajaros:99, minPajaros:99, libre:true,
+  intro:"Sin enemigos y sin prisa. Cambia los números y observa cómo se mueve la parábola: cómo la a la abre y la cierra, cómo el vértice sube, dónde caen las raíces.",
+  pista:"Prueba a poner a positiva y mira hacia dónde se va el búho.",
+  enemigos:[], bloques:[], aros:[], sol:{forma:"fact", v:[-0.06, 0, 13]}
+};
+
+/* ==========================================================================
+   ESTADO
+   ========================================================================== */
+var E = {
+  nivel:0, datos:null, bloques:[], enemigos:[], aros:[],
+  pajaros:0, usados:0, fase:"apuntar",   // apuntar | volando | asentando | fin
+  bird:null, estelas:[], particulas:[], flotantes:[],
+  boceto:false, usoBoceto:false, ejes:true, sonido:true,
+  forma:"fact", val:{fact:[-0.06,0,10], vert:[-0.05,8,3.2], gen:[-0.06,0.8,0]},
+  t:0, sacudida:0, camara:0, camaraObj:0
+};
+var progreso = cargar();
+
+function cargar(){ try{ return JSON.parse(localStorage.getItem("parabolica.v1")||"{}"); }catch(e){ return {}; } }
+function guardar(){ try{ localStorage.setItem("parabolica.v1", JSON.stringify(progreso)); }catch(e){} }
+
+/* ==========================================================================
+   LA FUNCIÓN
+   ========================================================================== */
+function coef(){                       // devuelve {a,b,c} de la forma activa
+  var v = E.val[E.forma];
+  if(E.forma==="fact"){ var a=v[0], r1=v[1], r2=v[2]; return {a:a, b:-a*(r1+r2), c:a*r1*r2}; }
+  if(E.forma==="vert"){ var a2=v[0], h=v[1], k=v[2]; return {a:a2, b:-2*a2*h, c:a2*h*h+k}; }
+  return {a:v[0], b:v[1], c:v[2]};
+}
+function f(x){ var q=coef(); return q.a*x*x + q.b*x + q.c; }
+function fp(x){ var q=coef(); return 2*q.a*x + q.b; }
+
+function valida(){
+  var q = coef(), v = E.val[E.forma];
+  if(q.a === 0) return {ok:false, tipo:"a0", msg:"Con a = 0 no hay parábola: eso es una recta y el búho no baja nunca."};
+  if(q.a > 0)  return {ok:false, tipo:"apos", msg:"Con a > 0 la parábola abre hacia arriba y el búho se va al espacio. Necesitas a negativa."};
+  if(Math.abs(q.c) > 0.15){
+    var arreglo = null, texto = "";
+    if(E.forma==="fact"){ texto = "una de las dos raíces tiene que ser 0"; arreglo = {i:1, val:0}; }
+    else if(E.forma==="vert"){
+      if(Math.abs(v[1]) < 1e-6){ arreglo = {i:2, val:0}; texto = "con h = 0 hace falta k = 0"; }
+      else { arreglo = {i:0, val: -v[2]/(v[1]*v[1])}; texto = "hace falta a = −k/h²"; }
+    }
+    else { arreglo = {i:2, val:0}; texto = "hace falta c = 0"; }
+    return {ok:false, tipo:"origen", c:q.c, msg:texto, arreglo:arreglo};
+  }
+  return {ok:true};
+}
+
+/* ==========================================================================
+   SONIDO (sintetizado, sin archivos)
+   ========================================================================== */
+var AC = null;
+function ac(){ if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return AC; }
+function son(tipo){
+  if(!E.sonido) return; var c = ac(); if(!c) return;
+  if(c.state === "suspended") c.resume();
+  var t = c.currentTime, o, g, i, b, d;
+  function env(gain, at, de, dest){
+    g = c.createGain(); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(gain, t+at);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+at+de);
+    g.connect(dest||c.destination); return g;
+  }
+  function ruido(dur){
+    b = c.createBuffer(1, c.sampleRate*dur, c.sampleRate); d = b.getChannelData(0);
+    for(i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*(1-i/d.length);
+    var s = c.createBufferSource(); s.buffer = b; return s;
+  }
+  if(tipo==="lanzar"){
+    o = c.createOscillator(); o.type="sawtooth";
+    o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(680,t+0.16);
+    o.connect(env(0.16,0.01,0.2)); o.start(t); o.stop(t+0.25);
+  } else if(tipo==="madera"){
+    var fl=c.createBiquadFilter(); fl.type="bandpass"; fl.frequency.value=420; fl.Q.value=1.4;
+    fl.connect(env(0.5,0.005,0.16)); var s1=ruido(0.2); s1.connect(fl); s1.start(t);
+  } else if(tipo==="hielo"){
+    var fh=c.createBiquadFilter(); fh.type="highpass"; fh.frequency.value=2600;
+    fh.connect(env(0.34,0.004,0.22)); var s2=ruido(0.26); s2.connect(fh); s2.start(t);
+  } else if(tipo==="piedra"){
+    var fp2=c.createBiquadFilter(); fp2.type="lowpass"; fp2.frequency.value=240;
+    fp2.connect(env(0.62,0.004,0.22)); var s3=ruido(0.26); s3.connect(fp2); s3.start(t);
+  } else if(tipo==="enemigo"){
+    o = c.createOscillator(); o.type="square";
+    o.frequency.setValueAtTime(660,t); o.frequency.exponentialRampToValueAtTime(120,t+0.2);
+    o.connect(env(0.2,0.005,0.24)); o.start(t); o.stop(t+0.3);
+  } else if(tipo==="aro"){
+    [880,1320].forEach(function(fq,j){
+      var oo=c.createOscillator(); oo.type="triangle"; oo.frequency.value=fq;
+      var gg=c.createGain(); gg.gain.setValueAtTime(0,t+j*0.07);
+      gg.gain.linearRampToValueAtTime(0.14,t+j*0.07+0.01);
+      gg.gain.exponentialRampToValueAtTime(0.0001,t+j*0.07+0.3);
+      oo.connect(gg); gg.connect(c.destination); oo.start(t+j*0.07); oo.stop(t+j*0.07+0.35);
+    });
+  } else if(tipo==="gana"){
+    [523,659,784,1047].forEach(function(fq,j){
+      var oo=c.createOscillator(); oo.type="triangle"; oo.frequency.value=fq;
+      var gg=c.createGain(); gg.gain.setValueAtTime(0,t+j*0.11);
+      gg.gain.linearRampToValueAtTime(0.17,t+j*0.11+0.02);
+      gg.gain.exponentialRampToValueAtTime(0.0001,t+j*0.11+0.42);
+      oo.connect(gg); gg.connect(c.destination); oo.start(t+j*0.11); oo.stop(t+j*0.11+0.5);
+    });
+  } else if(tipo==="falla"){
+    o=c.createOscillator(); o.type="sawtooth";
+    o.frequency.setValueAtTime(320,t); o.frequency.exponentialRampToValueAtTime(90,t+0.5);
+    o.connect(env(0.14,0.02,0.55)); o.start(t); o.stop(t+0.6);
+  }
+}
+
+/* ==========================================================================
+   LIENZO
+   ========================================================================== */
+var cv = document.getElementById("cv"), cx = cv.getContext("2d");
+var W=0, H=0, ESC=1, OX=0, OY=0;
+function medir(){
+  var caja = document.getElementById("lienzo-caja");
+  var dpr = Math.min(window.devicePixelRatio||1, 2);
+  W = caja.clientWidth; H = caja.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  cv.style.width = W+"px"; cv.style.height = H+"px";
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  var aw = VISTA.x1-VISTA.x0, tierra = 1.6, minAlto = 11;
+  ESC = W/aw;                                   // todo el campo tiene que verse
+  if((H - tierra*ESC)/ESC < minAlto) ESC = H/(minAlto + tierra);
+  OX = (W - aw*ESC)/2 - VISTA.x0*ESC;
+  OY = H - tierra*ESC;
+}
+function sx(x){ return OX + x*ESC + E.camara; }
+function sy(y){ return OY - y*ESC; }
+function su(u){ return u*ESC; }
+window.addEventListener("resize", medir);
+
+/* ---- utilidades de dibujo ---- */
+function ruta(fn, relleno, borde, grosor){
+  cx.beginPath(); fn();
+  if(relleno){ cx.fillStyle = relleno; cx.fill(); }
+  if(borde){ cx.strokeStyle = borde; cx.lineWidth = grosor||3; cx.lineJoin="round"; cx.stroke(); }
+}
+function rectRedondo(x,y,w,h,r){
+  cx.beginPath(); cx.moveTo(x+r,y);
+  cx.arcTo(x+w,y,x+w,y+h,r); cx.arcTo(x+w,y+h,x,y+h,r);
+  cx.arcTo(x,y+h,x,y,r); cx.arcTo(x,y,x+w,y,r); cx.closePath();
+}
+function texto(t,x,y,tam,relleno,borde,alin){
+  cx.font = "800 "+tam+"px "+getComputedStyle(document.body).fontFamily;
+  cx.textAlign = alin||"center"; cx.textBaseline="middle";
+  cx.lineJoin="round"; cx.miterLimit=2;
+  if(borde){ cx.strokeStyle=borde; cx.lineWidth=Math.max(3,tam*0.22); cx.strokeText(t,x,y); }
+  cx.fillStyle=relleno; cx.fillText(t,x,y);
+}
+
+/* ---- fondo ---- */
+var nubes = [], montes = [];
+(function(){
+  var i;
+  for(i=0;i<10;i++) nubes.push({ fx: Math.random(), fy: 0.05+Math.random()*0.46, s: 0.55+Math.random()*0.7, v: 0.006+Math.random()*0.009 });
+  for(i=0;i<42;i++) montes.push({ x:-14+i*1.5, h: 1.6+Math.sin(i*1.7)*0.8+Math.random()*0.7 });
+})();
+
+function dibujaCielo(){
+  var g = cx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#2fb0e8"); g.addColorStop(0.45,"#68cbf3"); g.addColorStop(0.82,"#b6e8fb"); g.addColorStop(1,"#e2f6ff");
+  cx.fillStyle=g; cx.fillRect(0,0,W,H);
+}
+function dibujaNube(n){
+  var x=n.fx*(W+320)-160, y=n.fy*H, s=n.s*W*0.055;
+  cx.save(); cx.globalAlpha=0.95;
+  ruta(function(){
+    cx.moveTo(x-s*1.6,y);
+    cx.arc(x-s*0.95,y-s*0.1,s*0.62,Math.PI,Math.PI*1.75);
+    cx.arc(x-s*0.15,y-s*0.5,s*0.78,Math.PI*1.1,Math.PI*1.9);
+    cx.arc(x+s*0.85,y-s*0.12,s*0.66,Math.PI*1.25,Math.PI*2.05);
+    cx.lineTo(x+s*1.5,y); cx.closePath();
+  },"#ffffff",null);
+  cx.globalAlpha=0.5;
+  ruta(function(){ cx.ellipse(x-s*0.1,y-s*0.04,s*1.5,s*0.2,0,0,Math.PI*2); },"#cfeaf7",null);
+  cx.restore();
+}
+function dibujaMontes(){
+  function capa(desf, alto, color){
+    var i, p;
+    cx.beginPath(); cx.moveTo(-60, sy(0));
+    for(i=0;i<montes.length-1;i++){
+      p=montes[i];
+      var x1=sx(p.x+desf), y1=sy(p.h*alto+0.7);
+      var x2=sx(montes[i+1].x+desf), y2=sy(montes[i+1].h*alto+0.7);
+      cx.quadraticCurveTo(x1, y1, (x1+x2)/2, (y1+y2)/2);
+    }
+    cx.lineTo(W+60, sy(0)); cx.closePath();
+    cx.fillStyle=color; cx.fill();
+  }
+  capa(0, 1.35, "#93d47e");
+  capa(1.1, 0.85, "#77bf61");
+}
+function dibujaSuelo(){
+  var yS=sy(0), x0=-60, x1=W+60;
+  // tierra
+  cx.fillStyle="#8a5a34"; cx.fillRect(x0, yS, x1-x0, H-yS+40);
+  var g=cx.createLinearGradient(0,yS,0,H); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,.32)");
+  cx.fillStyle=g; cx.fillRect(x0,yS,x1-x0,H-yS+40);
+  // piedrecitas
+  cx.fillStyle="rgba(255,255,255,.10)";
+  for(var i=0;i<34;i++){
+    var px=x0+((i*97)%(x1-x0)), py=yS+18+((i*53)%Math.max(30,H-yS-10));
+    cx.beginPath(); cx.ellipse(px,py,su(0.09),su(0.06),i,0,Math.PI*2); cx.fill();
+  }
+  // césped con borde ondulado
+  var alto=su(0.62);
+  cx.beginPath(); cx.moveTo(x0, yS+alto);
+  var paso=su(0.55);
+  for(var x=x0; x<=x1; x+=paso){
+    cx.quadraticCurveTo(x+paso*0.5, yS - su(0.16)*(1+0.5*Math.sin(x*0.05)), x+paso, yS);
+  }
+  cx.lineTo(x1, yS+alto); cx.closePath();
+  cx.fillStyle="#7ac142"; cx.fill();
+  cx.strokeStyle="#4d8b25"; cx.lineWidth=4; cx.stroke();
+  cx.fillStyle="rgba(255,255,255,.10)";
+  cx.fillRect(x0, yS+su(0.10), x1-x0, su(0.06));
+}
+function dibujaMata(x, s, colA, colB){
+  var bx=sx(x), by=sy(0), r=su(s);
+  ruta(function(){
+    cx.moveTo(bx-r,by);
+    cx.arc(bx-r*0.5,by-r*0.35,r*0.55,Math.PI,0);
+    cx.arc(bx+r*0.15,by-r*0.55,r*0.62,Math.PI,0);
+    cx.arc(bx+r*0.75,by-r*0.3,r*0.45,Math.PI,0);
+    cx.lineTo(bx+r*1.2,by); cx.closePath();
+  }, colA, colB, 3.5);
+}
+function dibujaEspadana(x,h){
+  var bx=sx(x), by=sy(0), hh=su(h);
+  cx.strokeStyle="#4d8b25"; cx.lineWidth=3.5; cx.lineCap="round";
+  cx.beginPath(); cx.moveTo(bx,by); cx.quadraticCurveTo(bx-su(0.14),by-hh*0.6, bx-su(0.05),by-hh); cx.stroke();
+  ruta(function(){ cx.ellipse(bx-su(0.05),by-hh-su(0.12),su(0.1),su(0.28),0,0,Math.PI*2); },"#8a5a34","#5a3512",3);
+}
+
+/* ---- ejes y cuadrícula ---- */
+function dibujaEjes(){
+  if(!E.ejes) return;
+  var yTop = OY/ESC;                      // hasta dónde llega el lienzo, en unidades
+  cx.save();
+  cx.strokeStyle="rgba(255,255,255,.20)"; cx.lineWidth=1.4;
+  var x,y;
+  for(x=Math.ceil(VISTA.x0); x<=VISTA.x1; x+=2){
+    cx.beginPath(); cx.moveTo(sx(x),sy(0)); cx.lineTo(sx(x),0); cx.stroke();
+  }
+  for(y=2; y<=yTop; y+=2){
+    cx.beginPath(); cx.moveTo(sx(VISTA.x0),sy(y)); cx.lineTo(sx(VISTA.x1),sy(y)); cx.stroke();
+  }
+  // eje X: va sobre el suelo
+  cx.strokeStyle="rgba(255,255,255,.85)"; cx.lineWidth=3;
+  cx.beginPath(); cx.moveTo(sx(VISTA.x0),sy(0)); cx.lineTo(sx(VISTA.x1),sy(0)); cx.stroke();
+  // eje Y
+  cx.save(); cx.setLineDash([su(0.22),su(0.2)]);
+  cx.strokeStyle="rgba(255,255,255,.45)"; cx.lineWidth=2.4;
+  cx.beginPath(); cx.moveTo(sx(0),sy(2.8)); cx.lineTo(sx(0),0); cx.stroke(); cx.restore();
+  for(x=2; x<=VISTA.x1-1; x+=2)
+    texto(String(x), sx(x), sy(0)+su(0.95), Math.max(11,su(0.34)), "#ffffff", "rgba(45,90,30,.9)");
+  for(y=4; y<=Math.min(yTop-1.2, 16); y+=2)
+    texto(String(y), sx(0)-su(0.48), sy(y), Math.max(10,su(0.30)), "rgba(255,255,255,.9)", "rgba(30,80,110,.55)");
+  cx.restore();
+}
+/* ---- bloques ---- */
+function dibujaBloque(b){
+  if(b.muerto) return;
+  var x=sx(b.x), y=sy(b.y+b.h), w=su(b.w), h=su(b.h), m=MAT[b.mat];
+  cx.save();
+  if(b.rot){ cx.translate(x+w/2,y+h/2); cx.rotate(b.rot); cx.translate(-w/2,-h/2); } else cx.translate(x,y);
+  var r=Math.min(w,h)*0.18;
+  var dan = 1 - b.vida/b.vidaMax;
+  cx.globalAlpha = b.mat==="hielo" ? 0.82 : 1;
+  var g=cx.createLinearGradient(0,0,0,h); g.addColorStop(0,m.col); g.addColorStop(1,m.col2);
+  rectRedondo(0,0,w,h,r); cx.fillStyle=g; cx.fill();
+  cx.strokeStyle=m.borde; cx.lineWidth=3.2; cx.stroke();
+  cx.globalAlpha=1;
+  // vetas / textura
+  cx.save(); rectRedondo(0,0,w,h,r); cx.clip();
+  cx.strokeStyle=m.veta; cx.globalAlpha=b.mat==="hielo"?0.55:0.35; cx.lineWidth=2;
+  if(b.mat==="madera"){
+    for(var i=1;i<3;i++){ cx.beginPath(); cx.moveTo(w*0.12, h*i/3); cx.lineTo(w*0.88, h*i/3); cx.stroke(); }
+  } else if(b.mat==="hielo"){
+    cx.beginPath(); cx.moveTo(w*0.18,h*0.82); cx.lineTo(w*0.42,h*0.16); cx.stroke();
+    cx.beginPath(); cx.moveTo(w*0.58,h*0.9); cx.lineTo(w*0.8,h*0.3); cx.stroke();
+  } else {
+    cx.globalAlpha=0.3; cx.fillStyle=m.veta;
+    for(var j=0;j<4;j++){ cx.beginPath(); cx.arc(w*(0.2+0.2*j), h*(0.3+0.4*((j*7)%3)/2), Math.min(w,h)*0.08,0,Math.PI*2); cx.fill(); }
+  }
+  cx.globalAlpha=1;
+  // grietas por daño
+  if(dan>0.25){
+    cx.strokeStyle="rgba(0,0,0,.5)"; cx.lineWidth=2.4;
+    cx.beginPath(); cx.moveTo(w*0.3,0); cx.lineTo(w*0.45,h*0.4); cx.lineTo(w*0.3,h*0.68); cx.lineTo(w*0.5,h); cx.stroke();
+    if(dan>0.6){ cx.beginPath(); cx.moveTo(w*0.72,0); cx.lineTo(w*0.6,h*0.5); cx.lineTo(w*0.78,h); cx.stroke(); }
+  }
+  cx.restore();
+  // brillo superior
+  cx.fillStyle="rgba(255,255,255,.28)";
+  rectRedondo(w*0.1, h*0.09, w*0.8, h*0.13, h*0.06); cx.fill();
+  cx.restore();
+}
+
+/* ---- enemigos ---- */
+function dibujaEnemigo(e){
+  if(e.muerto) return;
+  var x=sx(e.x), y=sy(e.y+R_ENEMIGO), r=su(R_ENEMIGO);
+  var bob = Math.sin(E.t*2.4 + e.x)*r*0.045;
+  cx.save(); cx.translate(x, y+bob);
+  if(e.rot) cx.rotate(e.rot);
+  // orejas
+  ruta(function(){ cx.moveTo(-r*0.62,-r*0.55); cx.lineTo(-r*0.95,-r*1.18); cx.lineTo(-r*0.2,-r*0.85); cx.closePath(); },"#7a48b8","#3f2168",3);
+  ruta(function(){ cx.moveTo( r*0.62,-r*0.55); cx.lineTo( r*0.95,-r*1.18); cx.lineTo( r*0.2,-r*0.85); cx.closePath(); },"#7a48b8","#3f2168",3);
+  // cuerpo
+  var g=cx.createRadialGradient(-r*0.3,-r*0.35,r*0.15,0,0,r*1.15);
+  g.addColorStop(0,"#b07be0"); g.addColorStop(0.55,"#8e5bc9"); g.addColorStop(1,"#6b3fa0");
+  ruta(function(){ cx.arc(0,0,r,0,Math.PI*2); }, g, "#3f2168", 3.4);
+  // panza
+  cx.globalAlpha=.35;
+  ruta(function(){ cx.ellipse(0,r*0.32,r*0.52,r*0.36,0,0,Math.PI*2); },"#d9bff2",null);
+  cx.globalAlpha=1;
+  // ojos
+  var mira = e.mira||0;
+  [[-1,0],[1,0]].forEach(function(o){
+    ruta(function(){ cx.arc(o[0]*r*0.34,-r*0.16,r*0.30,0,Math.PI*2); },"#fffdf2","#3f2168",2.6);
+    ruta(function(){ cx.arc(o[0]*r*0.34+mira*r*0.1,-r*0.14,r*0.145,0,Math.PI*2); },"#2b1a3a",null);
+    ruta(function(){ cx.arc(o[0]*r*0.34-r*0.05,-r*0.21,r*0.05,0,Math.PI*2); },"#ffffff",null);
+  });
+  // cejas enfadadas
+  cx.strokeStyle="#3f2168"; cx.lineWidth=r*0.13; cx.lineCap="round";
+  cx.beginPath(); cx.moveTo(-r*0.62,-r*0.52); cx.lineTo(-r*0.12,-r*0.34); cx.stroke();
+  cx.beginPath(); cx.moveTo( r*0.62,-r*0.52); cx.lineTo( r*0.12,-r*0.34); cx.stroke();
+  // boca
+  ruta(function(){ cx.moveTo(-r*0.28,r*0.36); cx.quadraticCurveTo(0,r*0.62,r*0.28,r*0.36); },null,"#3f2168",r*0.11);
+  ruta(function(){ cx.moveTo(-r*0.16,r*0.42); cx.lineTo(-r*0.09,r*0.56); cx.lineTo(-r*0.02,r*0.42); cx.closePath(); },"#fffdf2",null);
+  cx.restore();
+}
+
+/* ---- búho ---- */
+function dibujaPajaro(x,y,ang,esc,tipo){
+  var r=su(R_PAJARO)*(esc||1);
+  var pal = tipo===1 ? {a:"#ffd23f", b:"#e0a000", c:"#5a3d00"} : {a:"#f4795a", b:"#d8422b", c:"#701c10"};
+  cx.save(); cx.translate(x,y); cx.rotate(ang||0);
+  // cola, abajo y detrás
+  ruta(function(){
+    cx.moveTo(-r*0.72, r*0.28); cx.lineTo(-r*1.32, r*0.30);
+    cx.lineTo(-r*1.22, r*0.62); cx.lineTo(-r*0.66, r*0.58); cx.closePath();
+  }, pal.b, pal.c, 2.6);
+  // penachos
+  ruta(function(){ cx.moveTo(-r*0.62,-r*0.60); cx.lineTo(-r*0.86,-r*1.30); cx.lineTo(-r*0.14,-r*0.90); cx.closePath(); }, pal.b, pal.c, 2.8);
+  ruta(function(){ cx.moveTo( r*0.62,-r*0.60); cx.lineTo( r*0.86,-r*1.30); cx.lineTo( r*0.14,-r*0.90); cx.closePath(); }, pal.b, pal.c, 2.8);
+  // cuerpo
+  var g=cx.createRadialGradient(-r*0.28,-r*0.34,r*0.10, 0,0, r*1.18);
+  g.addColorStop(0, pal.a); g.addColorStop(0.62, pal.a); g.addColorStop(1, pal.b);
+  ruta(function(){ cx.arc(0,0,r,0,Math.PI*2); }, g, pal.c, 3.4);
+  // ala
+  cx.save(); ruta(function(){ cx.arc(0,0,r,0,Math.PI*2); },null,null); cx.clip();
+  ruta(function(){ cx.ellipse(-r*0.52, r*0.16, r*0.40, r*0.56, 0.22, 0, Math.PI*2); }, pal.b, pal.c, 2.4);
+  cx.restore();
+  // disco facial de búho
+  ruta(function(){
+    cx.moveTo(0,-r*0.86);
+    cx.quadraticCurveTo( r*0.82,-r*0.72,  r*0.72, r*0.02);
+    cx.quadraticCurveTo( r*0.50, r*0.62,  0, r*0.46);
+    cx.quadraticCurveTo(-r*0.50, r*0.62, -r*0.72, r*0.02);
+    cx.quadraticCurveTo(-r*0.82,-r*0.72,  0,-r*0.86);
+    cx.closePath();
+  }, "#fff3d6", pal.c, 2.8);
+  // ojos
+  [-1,1].forEach(function(o){
+    ruta(function(){ cx.arc(o*r*0.33,-r*0.20, r*0.27, 0, Math.PI*2); }, "#ffffff", pal.c, 2.4);
+    ruta(function(){ cx.arc(o*r*0.33+r*0.04,-r*0.19, r*0.135, 0, Math.PI*2); }, "#231409", null);
+    ruta(function(){ cx.arc(o*r*0.33-r*0.02,-r*0.26, r*0.05, 0, Math.PI*2); }, "#ffffff", null);
+  });
+  // cejas de mala leche
+  cx.strokeStyle=pal.c; cx.lineWidth=r*0.15; cx.lineCap="round";
+  cx.beginPath(); cx.moveTo(-r*0.66,-r*0.58); cx.lineTo(-r*0.10,-r*0.34); cx.stroke();
+  cx.beginPath(); cx.moveTo( r*0.66,-r*0.58); cx.lineTo( r*0.10,-r*0.34); cx.stroke();
+  // pico
+  ruta(function(){ cx.moveTo(-r*0.16, r*0.06); cx.lineTo(r*0.16, r*0.06); cx.lineTo(0, r*0.42); cx.closePath(); },
+       "#ffb238", "#8a5000", 2.4);
+  cx.restore();
+}
+
+/* ---- tirachinas ---- */
+function dibujaTirachinas(capa){
+  var bx=sx(0), by=sy(0), brazo=su(1.42), grosor=su(0.27), pr=su(R_PAJARO), cy=sy(REPOSO);
+  var conGoma = (E.fase==="apuntar" && E.pajaros>0);
+  cx.lineCap="round"; cx.lineJoin="round";
+
+  if(capa==="poste"){
+    // sombra en el suelo
+    cx.fillStyle="rgba(0,0,0,.13)";
+    cx.beginPath(); cx.ellipse(bx, by+su(0.12), su(0.95), su(0.16), 0, 0, Math.PI*2); cx.fill();
+    // madera: trazo oscuro debajo, claro encima
+    function palo(w, col){
+      cx.strokeStyle=col; cx.lineWidth=w;
+      cx.beginPath(); cx.moveTo(bx, by+su(1.5)); cx.lineTo(bx, by-su(0.18)); cx.stroke();
+      cx.beginPath(); cx.moveTo(bx, by-su(0.12));
+      cx.quadraticCurveTo(bx-su(1.06), by-brazo*0.42, bx-su(1.00), by-brazo); cx.stroke();
+      cx.beginPath(); cx.moveTo(bx, by-su(0.12));
+      cx.quadraticCurveTo(bx+su(1.06), by-brazo*0.42, bx+su(1.00), by-brazo); cx.stroke();
+    }
+    palo(grosor*1.55, "#4a2c11");
+    palo(grosor, "#9a6430");
+    cx.strokeStyle="rgba(255,255,255,.20)"; cx.lineWidth=grosor*0.3;
+    cx.beginPath(); cx.moveTo(bx-su(0.05), by+su(1.2)); cx.lineTo(bx-su(0.05), by-su(0.14)); cx.stroke();
+    [-1.00, 1.00].forEach(function(o){
+      ruta(function(){ cx.arc(bx+su(o), by-brazo, grosor*0.60, 0, Math.PI*2); },"#9a6430","#4a2c11",3);
+    });
+    // goma de detrás
+    if(conGoma){
+      cx.strokeStyle="#6d3020"; cx.lineWidth=su(0.17);
+      cx.beginPath(); cx.moveTo(bx-su(1.00), by-brazo); cx.lineTo(bx-pr*0.42, cy-pr*0.10); cx.stroke();
+    }
+    return;
+  }
+
+  if(capa==="delante" && conGoma){
+    // goma de delante
+    cx.strokeStyle="#8a4030"; cx.lineWidth=su(0.17);
+    cx.beginPath(); cx.moveTo(bx+su(1.00), by-brazo); cx.lineTo(bx+pr*0.44, cy-pr*0.10); cx.stroke();
+    // correa de cuero cruzando la panza del búho
+    ruta(function(){
+      cx.moveTo(bx-pr*0.40, cy+pr*0.10);
+      cx.quadraticCurveTo(bx, cy+pr*0.66, bx+pr*0.42, cy+pr*0.10);
+      cx.quadraticCurveTo(bx, cy+pr*0.38, bx-pr*0.40, cy+pr*0.10);
+      cx.closePath();
+    },"#8a4a2c","#4a2410",2.8);
+  }
+}
+
+/* ---- aros ---- */
+function dibujaAro(a){
+  var x=sx(a.x), y=sy(a.y), r=su(0.92);
+  cx.save();
+  if(a.pasado){
+    cx.strokeStyle="#7ac142"; cx.lineWidth=su(0.16);
+    cx.beginPath(); cx.arc(x,y,r,0,Math.PI*2); cx.stroke();
+    cx.strokeStyle="#4d8b25"; cx.lineWidth=su(0.05);
+    cx.beginPath(); cx.arc(x,y,r,0,Math.PI*2); cx.stroke();
+    texto("✓", x, y, su(0.7), "#7ac142", "#2d5a1e");
+  } else {
+    var pul = 1 + Math.sin(E.t*3)*0.035;
+    cx.strokeStyle="#d99400"; cx.lineWidth=su(0.19);
+    cx.beginPath(); cx.arc(x,y,r*pul,0,Math.PI*2); cx.stroke();
+    cx.strokeStyle="#ffc229"; cx.lineWidth=su(0.12);
+    cx.beginPath(); cx.arc(x,y,r*pul,0,Math.PI*2); cx.stroke();
+    cx.strokeStyle="rgba(255,255,255,.75)"; cx.lineWidth=su(0.045);
+    cx.beginPath(); cx.arc(x,y,r*pul,-2.3,-1.1); cx.stroke();
+    texto("("+a.x.toString().replace(".",",")+" , "+a.y.toString().replace(".",",")+")",
+          x, y-r-su(0.45), Math.max(11,su(0.32)), "#fff8e0", "rgba(90,53,18,.9)");
+  }
+  cx.restore();
+}
+
+/* ---- trayectorias ---- */
+function curva(desde, hasta, traz, color, ancho){
+  cx.save(); cx.setLineDash(traz||[]); cx.strokeStyle=color; cx.lineWidth=ancho||3; cx.lineCap="round";
+  cx.beginPath();
+  var primero=true;
+  for(var x=desde; x<=hasta; x+=0.12){
+    var y=f(x);
+    if(y<0 && x>0.5){ if(!primero) cx.lineTo(sx(x),sy(Math.max(y,-0.05))); break; }
+    if(y<VISTA.y0-2||y>VISTA.y1+14) { primero=true; continue; }
+    if(primero){ cx.moveTo(sx(x),sy(y)); primero=false; } else cx.lineTo(sx(x),sy(y));
+  }
+  cx.stroke(); cx.restore();
+}
+function dibujaEstelas(){
+  var i,j;
+  for(i=0;i<E.estelas.length;i++){
+    var e=E.estelas[i];
+    var ult = (i===E.estelas.length-1);
+    cx.save(); cx.globalAlpha = ult ? 0.55 : 0.22;
+    cx.fillStyle = ult ? "#fff6dc" : "#ffffff";
+    for(j=0;j<e.p.length;j++){
+      cx.beginPath(); cx.arc(sx(e.p[j][0]), sy(e.p[j][1]), su(ult?0.115:0.09), 0, Math.PI*2); cx.fill();
+    }
+    cx.restore();
+  }
+}
+function dibujaBoceto(){
+  if(E.fase!=="apuntar") return;
+  var v=valida();
+  if(E.boceto && v.ok){
+    curva(0, VISTA.x1+1, [su(0.3),su(0.28)], "rgba(255,255,255,.85)", su(0.09));
+  }
+  // flecha de salida (siempre): la pendiente en x=0
+  if(v.ok || v.tipo==="origen"){
+    var m=fp(0), L=2.9, L0=1.15, ang=Math.atan(m);
+    var bx=sx(0), by=sy(REPOSO*0.5);
+    var x1=bx+Math.cos(ang)*su(L0), y1=by-Math.sin(ang)*su(L0);
+    var ex2=bx+Math.cos(ang)*su(L), ey=by-Math.sin(ang)*su(L);
+    cx.save(); cx.strokeStyle="rgba(255,255,255,.8)"; cx.lineWidth=su(0.11); cx.lineCap="round";
+    cx.setLineDash([su(0.2),su(0.18)]);
+    cx.beginPath(); cx.moveTo(x1,y1); cx.lineTo(ex2,ey); cx.stroke();
+    cx.setLineDash([]);
+    cx.translate(ex2,ey); cx.rotate(-ang);
+    ruta(function(){ cx.moveTo(su(0.3),0); cx.lineTo(-su(0.1),su(0.19)); cx.lineTo(-su(0.1),-su(0.19)); cx.closePath(); },"rgba(255,255,255,.9)",null);
+    cx.restore();
+  }
+}
+
+/* ---- partículas y textos flotantes ---- */
+function chispas(x,y,n,color,fuerza){
+  for(var i=0;i<n;i++){
+    var a=Math.random()*Math.PI*2, v=(0.4+Math.random())*(fuerza||4);
+    E.particulas.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v+2,r:0.05+Math.random()*0.13,col:color,vida:0.5+Math.random()*0.6,t:0});
+  }
+}
+function flota(x,y,txt,color){ E.flotantes.push({x:x,y:y,t:0,txt:txt,col:color||"#fff8e0"}); }
+function dibujaParticulas(){
+  var i,p;
+  for(i=0;i<E.particulas.length;i++){
+    p=E.particulas[i];
+    cx.globalAlpha=Math.max(0,1-p.t/p.vida);
+    cx.fillStyle=p.col;
+    cx.beginPath(); cx.arc(sx(p.x),sy(p.y),su(p.r),0,Math.PI*2); cx.fill();
+  }
+  cx.globalAlpha=1;
+  for(i=0;i<E.flotantes.length;i++){
+    p=E.flotantes[i];
+    cx.globalAlpha=Math.max(0,1-p.t/1.2);
+    texto(p.txt, sx(p.x), sy(p.y)-su(p.t*1.6), Math.max(15,su(0.5)), p.col, "rgba(60,30,10,.85)");
+  }
+  cx.globalAlpha=1;
+}
+
+/* ==========================================================================
+   BUCLE DE DIBUJO
+   ========================================================================== */
+function pinta(){
+  cx.save();
+  if(E.sacudida>0 && !REDUCIDO){
+    cx.translate((Math.random()-0.5)*E.sacudida*14, (Math.random()-0.5)*E.sacudida*14);
+  }
+  dibujaCielo();
+  for(var i=0;i<nubes.length;i++) dibujaNube(nubes[i]);
+  dibujaMontes();
+  dibujaSuelo();
+  dibujaEjes();
+  
+  dibujaMata(9.6,0.75,"#8fd07a","#4d8b25");
+  dibujaEspadana(22.6,1.1); dibujaEspadana(23.1,0.8);
+  dibujaMata(23.8,0.9,"#8fd07a","#4d8b25");
+  dibujaTirachinas("poste");
+
+  for(i=0;i<E.aros.length;i++) dibujaAro(E.aros[i]);
+  dibujaEstelas();
+  for(i=0;i<E.bloques.length;i++) dibujaBloque(E.bloques[i]);
+  for(i=0;i<E.enemigos.length;i++) dibujaEnemigo(E.enemigos[i]);
+  dibujaBoceto();
+
+  if(E.fase==="apuntar" && E.pajaros>0) dibujaPajaro(sx(0), sy(REPOSO), -0.14, 1, 0);
+  dibujaTirachinas("delante");
+  if(E.bird && !E.bird.fin) dibujaPajaro(sx(E.bird.x), sy(E.bird.y), E.bird.ang, 1, 0);
+  // búhos en reserva
+  for(i=0;i<Math.min(E.pajaros-1,3);i++) dibujaPajaro(sx(-1.45-i*0.8), sy(0.30), 0, 0.52, 0);
+
+  dibujaParticulas();
+  cx.restore();
+}
+
+/* ==========================================================================
+   FÍSICA / LÓGICA
+   ========================================================================== */
+function colisionCirculoRect(cxx,cyy,r,b){
+  var nx=Math.max(b.x, Math.min(cxx, b.x+b.w));
+  var ny=Math.max(b.y, Math.min(cyy, b.y+b.h));
+  var dx=cxx-nx, dy=cyy-ny;
+  return dx*dx+dy*dy < r*r;
+}
+function rompe(b, dano){
+  b.vida -= dano;
+  chispas(b.x+b.w/2, b.y+b.h/2, 7, MAT[b.mat].col, 3);
+  if(b.vida<=0){
+    b.muerto = true;
+    son(b.mat);
+    chispas(b.x+b.w/2, b.y+b.h/2, 16, MAT[b.mat].col2, 6);
+    E.sacudida = Math.max(E.sacudida, 0.35);
+  } else son(b.mat);
+}
+function mataEnemigo(e, motivo){
+  if(e.muerto) return;
+  e.muerto = true; son("enemigo");
+  chispas(e.x, e.y+R_ENEMIGO, 20, "#b07be0", 6);
+  chispas(e.x, e.y+R_ENEMIGO, 8, "#ffd34d", 4);
+  flota(e.x, e.y+1.1, motivo||"¡toma!", "#ffd34d");
+  E.sacudida = Math.max(E.sacudida, 0.5);
+  refrescaContadores();
+}
+
+function lanza(){
+  var v = valida();
+  if(!v.ok){ muestraAviso(v); return; }
+  if(E.fase!=="apuntar" || E.pajaros<=0) return;
+  ocultaAviso();
+  E.pajaros--; E.usados++;
+  E.fase="volando";
+  E.bird = { x:0, y:0, ang:0, imp:IMPULSO, caida:false, vx:0, vy:0, fin:false, tocados:[], p:[] };
+  E.estelas.push({p:[]});
+  if(E.estelas.length>5) E.estelas.shift();
+  son("lanzar");
+  refrescaContadores(); refrescaBotones();
+}
+
+function pasoVuelo(dt){
+  var b=E.bird; if(!b || b.fin) return;
+  var vel = 8.2, sub = 6, i, k;
+  for(k=0;k<sub;k++){
+    var px=b.x, py=b.y;
+    if(!b.caida){
+      b.x += vel*dt/sub;
+      b.y = f(b.x);
+      b.ang = -Math.atan(fp(b.x));
+    } else {
+      b.vy -= G*dt/sub;
+      b.x += b.vx*dt/sub; b.y += b.vy*dt/sub;
+      b.ang += 6*dt/sub;
+    }
+    // estela
+    var est = E.estelas[E.estelas.length-1];
+    if(!est.p.length || Math.abs(est.p[est.p.length-1][0]-b.x)>0.32) est.p.push([b.x,b.y]);
+
+    // aros
+    for(i=0;i<E.aros.length;i++){
+      var a=E.aros[i];
+      if(!a.pasado && Math.abs(b.x-a.x)<0.18 && Math.abs(b.y-a.y)<0.92){
+        a.pasado=true; son("aro"); flota(a.x, a.y+1.4, "¡aro!", "#ffc229");
+        chispas(a.x,a.y,14,"#ffc229",5);
+      }
+    }
+    // enemigos
+    for(i=0;i<E.enemigos.length;i++){
+      var e=E.enemigos[i];
+      if(e.muerto) continue;
+      var dx=b.x-e.x, dy=b.y-(e.y+R_ENEMIGO);
+      if(dx*dx+dy*dy < (R_PAJARO+R_ENEMIGO)*(R_PAJARO+R_ENEMIGO)){ mataEnemigo(e,"¡directo!"); b.imp-=0.5; }
+    }
+    // bloques
+    for(i=0;i<E.bloques.length;i++){
+      var bl=E.bloques[i];
+      if(bl.muerto || b.tocados.indexOf(bl)>=0) continue;
+      if(colisionCirculoRect(b.x,b.y,R_PAJARO,bl)){
+        b.tocados.push(bl);
+        var coste = MAT[bl.mat].coste;
+        rompe(bl, b.imp>=coste ? bl.vidaMax+1 : Math.max(0, b.imp)*0.8);
+        b.imp -= coste;
+        if(b.imp<=0 && !b.caida){
+          b.caida=true;
+          var m=fp(b.x); var norm=Math.sqrt(1+m*m);
+          b.vx = vel/norm*0.35; b.vy = vel*m/norm*0.35;
+        }
+      }
+    }
+    // suelo / fuera
+    if(b.y<=0 && (b.x>0.6 || b.caida)){
+      b.fin=true; chispas(b.x,0.1,10,"#c49a6c",3.5);
+      break;
+    }
+    if(b.x>VISTA.x1+2 || b.y>VISTA.y1+30 || b.x<VISTA.x0-2){ b.fin=true; break; }
+  }
+  if(b.fin){ E.fase="asentando"; E.asentar=0; }
+}
+
+function soporte(o, oy, oh, ow, ox){
+  if(oy<=0.02) return true;
+  for(var i=0;i<E.bloques.length;i++){
+    var s=E.bloques[i];
+    if(s===o || s.muerto) continue;
+    var top=s.y+s.h;
+    if(top <= oy+0.06 && top >= oy-0.14){
+      var sol = Math.min(ox+ow, s.x+s.w) - Math.max(ox, s.x);
+      if(sol > ow*0.12) return true;
+    }
+  }
+  return false;
+}
+function pasoAsentar(dt){
+  var i,j,mov=false;
+  for(i=0;i<E.bloques.length;i++){
+    var b=E.bloques[i]; if(b.muerto || b.fijo) continue;
+    if(!soporte(b, b.y, b.h, b.w, b.x)){
+      b.vy = (b.vy||0) - G*dt;
+      b.y += b.vy*dt;
+      b.rot = (b.rot||0) + (b.rotv||(b.rotv=(Math.random()-0.5)*1.2))*dt;
+      mov=true;
+      // aterrizaje
+      var techo=0;
+      for(j=0;j<E.bloques.length;j++){
+        var s=E.bloques[j]; if(s===b||s.muerto) continue;
+        var sol=Math.min(b.x+b.w, s.x+s.w)-Math.max(b.x, s.x);
+        if(sol>b.w*0.12 && s.y+s.h<=b.y+0.3) techo=Math.max(techo, s.y+s.h);
+      }
+      if(b.y<=techo){
+        var vimp=Math.abs(b.vy);
+        b.y=techo; b.vy=0; b.rot=(b.rot||0)*0.25;
+        if(vimp>4){ rompe(b, vimp*0.32); E.sacudida=Math.max(E.sacudida,0.25); }
+      }
+      // aplasta enemigos
+      for(j=0;j<E.enemigos.length;j++){
+        var e=E.enemigos[j]; if(e.muerto) continue;
+        if(colisionCirculoRect(e.x, e.y+R_ENEMIGO, R_ENEMIGO, b) && Math.abs(b.vy)>2.6)
+          mataEnemigo(e, "¡aplastado!");
+      }
+    } else { b.vy=0; }
+  }
+  // enemigos que se quedan sin suelo
+  for(i=0;i<E.enemigos.length;i++){
+    var en=E.enemigos[i]; if(en.muerto) continue;
+    if(!soporte(en, en.y, 2*R_ENEMIGO, 2*R_ENEMIGO, en.x-R_ENEMIGO)){
+      en.vy=(en.vy||0)-G*dt; en.y+=en.vy*dt; en.rot=(en.rot||0)+2.2*dt; mov=true;
+      var suelo=0;
+      for(j=0;j<E.bloques.length;j++){
+        var s2=E.bloques[j]; if(s2.muerto) continue;
+        var sol2=Math.min(en.x+R_ENEMIGO, s2.x+s2.w)-Math.max(en.x-R_ENEMIGO, s2.x);
+        if(sol2>R_ENEMIGO*0.3 && s2.y+s2.h<=en.y+0.3) suelo=Math.max(suelo, s2.y+s2.h);
+      }
+      if(en.y<=suelo){
+        if(Math.abs(en.vy)>6.5) mataEnemigo(en,"¡catapumba!");
+        en.y=suelo; en.vy=0; en.rot=0;
+      }
+    }
+  }
+  E.asentar += dt;
+  if(!mov || E.asentar>4){ resuelve(); }
+}
+
+function vivos(){ var n=0; for(var i=0;i<E.enemigos.length;i++) if(!E.enemigos[i].muerto) n++; return n; }
+function arosPendientes(){ var n=0; for(var i=0;i<E.aros.length;i++) if(!E.aros[i].pasado) n++; return n; }
+
+function resuelve(){
+  if(E.datos.libre){ E.fase="apuntar"; E.bird=null; refrescaBotones(); return; }
+  if(vivos()===0 && arosPendientes()===0){
+    E.fase="fin"; son("gana");
+    var est = 3;
+    if(E.usoBoceto) est--;
+    est -= Math.max(0, E.usados - E.datos.minPajaros);
+    est = Math.max(1, Math.min(3, est));
+    var clave = "n"+E.nivel;
+    if(!progreso[clave] || progreso[clave] < est){ progreso[clave]=est; guardar(); }
+    setTimeout(function(){ panelVictoria(est); }, 750);
+  } else if(E.pajaros<=0){
+    E.fase="fin"; son("falla");
+    setTimeout(panelDerrota, 700);
+  } else {
+    E.fase="apuntar"; E.bird=null; refrescaBotones();
+  }
+}
+
+/* ==========================================================================
+   BUCLE PRINCIPAL
+   ========================================================================== */
+var ultimo=0;
+function tic(ms){
+  var dt = ultimo ? Math.min((ms-ultimo)/1000, 0.033) : 0; ultimo=ms;
+  E.t += dt;
+  var i;
+  for(i=0;i<nubes.length;i++){ nubes[i].fx += nubes[i].v*dt; if(nubes[i].fx>1.12) nubes[i].fx=-0.12; }
+  if(E.sacudida>0) E.sacudida=Math.max(0, E.sacudida-dt*2.2);
+  for(i=E.particulas.length-1;i>=0;i--){
+    var p=E.particulas[i];
+    p.t+=dt; p.vy-=G*0.55*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+    if(p.t>p.vida || p.y<-2) E.particulas.splice(i,1);
+  }
+  for(i=E.flotantes.length-1;i>=0;i--){ E.flotantes[i].t+=dt; if(E.flotantes[i].t>1.2) E.flotantes.splice(i,1); }
+  if(E.fase==="volando") pasoVuelo(dt);
+  else if(E.fase==="asentando") pasoAsentar(dt);
+  // cámara: sigue al pájaro
+  var obj=0;
+  if(E.bird && !E.bird.fin && E.bird.x>11) obj = -su(Math.min(E.bird.x-11, 4));
+  E.camara += (obj-E.camara)*Math.min(1, dt*3.5);
+  pinta();
+  requestAnimationFrame(tic);
+}
+
+/* ==========================================================================
+   INTERFAZ
+   ========================================================================== */
+var $ = function(id){ return document.getElementById(id); };
+function nf(x){
+  if(!isFinite(x)) return "0";
+  var s = Math.round(x*10000)/10000;
+  return String(s).replace(".", ",");
+}
+function parse(s){
+  s = String(s).trim().replace(",", ".").replace(/\s/g,"");
+  if(s==="" || s==="-") return NaN;
+  if(s.indexOf("/")>0){ var q=s.split("/"); var n=parseFloat(q[0]), d=parseFloat(q[1]); if(isFinite(n)&&isFinite(d)&&d!==0) return n/d; }
+  var v=parseFloat(s);
+  return isFinite(v)? v : NaN;
+}
+
+function pintaEcuacion(){
+  var caja=$("ecuacion"); caja.innerHTML="";
+  var v=E.val[E.forma], piezas;
+  if(E.forma==="fact") piezas=[["lit","y ="],["c",0],["lit","( x −"],["c",1],["lit",") ( x −"],["c",2],["lit",")"]];
+  else if(E.forma==="vert") piezas=[["lit","y ="],["c",0],["lit","( x −"],["c",1],["lit",") ²  +"],["c",2]];
+  else piezas=[["lit","y ="],["c",0],["lit","x ²  +"],["c",1],["lit","x  +"],["c",2]];
+  piezas.forEach(function(p){
+    if(p[0]==="lit"){ var s=document.createElement("span"); s.className="lit"; s.textContent=p[1]; caja.appendChild(s); }
+    else {
+      var inp=document.createElement("input");
+      inp.className="campo"; inp.type="text"; inp.inputMode="decimal";
+      inp.value=nf(v[p[1]]); inp.dataset.i=p[1];
+      inp.setAttribute("aria-label", ["a","segundo número","tercer número"][p[1]]);
+      inp.addEventListener("input", function(){
+        var val=parse(this.value);
+        if(!isNaN(val)){ E.val[E.forma][+this.dataset.i]=val; this.classList.remove("mal"); ocultaAviso(); pintaLectura(); }
+      });
+      inp.addEventListener("keydown", function(ev){ if(ev.key==="Enter"){ ev.preventDefault(); lanza(); } });
+      inp.addEventListener("focus", function(){ this.select(); });
+      caja.appendChild(inp);
+    }
+  });
+}
+function muestraAviso(v){
+  var a=$("aviso"); a.className="ver"; a.innerHTML="";
+  var t=document.createElement("span");
+  if(v.tipo==="origen"){
+    t.innerHTML = "Esa parábola no pasa por el tirachinas: <b>y(0) = "+nf(v.c)+"</b>, y tiene que valer 0. Para eso "+v.msg+".";
+  } else t.textContent = v.msg;
+  a.appendChild(t);
+  if(v.arreglo){
+    var b=document.createElement("button"); b.className="arreglar"; b.textContent="Ajustar";
+    b.addEventListener("click", function(){
+      E.val[E.forma][v.arreglo.i] = Math.round(v.arreglo.val*10000)/10000;
+      pintaEcuacion(); pintaLectura(); ocultaAviso();
+    });
+    a.appendChild(b);
+  }
+  var campos=document.querySelectorAll(".campo");
+  for(var i=0;i<campos.length;i++){ campos[i].classList.add("mal"); setTimeout((function(c){return function(){c.classList.remove("mal");};})(campos[i]), 400); }
+}
+function ocultaAviso(){ $("aviso").className=""; }
+
+function pintaLectura(){
+  var q=coef(), caja=$("lectura");
+  if(q.a===0 || !isFinite(q.a)){ caja.innerHTML='<span class="apagado">a = 0: eso no es una parábola</span>'; return; }
+  var h=-q.b/(2*q.a), k=q.a*h*h+q.b*h+q.c;
+  var disc=q.b*q.b-4*q.a*q.c, raices;
+  if(disc<0) raices='<span class="apagado">sin raíces reales</span>';
+  else {
+    var r1=(-q.b-Math.sqrt(disc))/(2*q.a), r2=(-q.b+Math.sqrt(disc))/(2*q.a);
+    if(r1>r2){ var t=r1; r1=r2; r2=t; }
+    raices='raíces <b>'+nf(r1)+'</b> y <b>'+nf(r2)+'</b>';
+  }
+  caja.innerHTML =
+    '<span>'+raices+'</span>'+
+    '<span>vértice <b>('+nf(h)+' , '+nf(k)+')</b></span>'+
+    '<span>y = <b>'+nf(q.a)+'x²'+(q.b<0?" − ":" + ")+nf(Math.abs(q.b))+'x'+
+      (Math.abs(q.c)>0.005 ? (q.c<0?" − ":" + ")+nf(Math.abs(q.c)) : "")+'</b></span>';
+}
+
+function refrescaContadores(){
+  $("cPajaros").textContent = E.datos.libre ? "∞" : E.pajaros;
+  $("cEnemigos").textContent = vivos() + (E.aros.length ? " · "+arosPendientes()+"○" : "");
+}
+function refrescaBotones(){
+  $("bDisparo").disabled = (E.fase!=="apuntar") || (E.pajaros<=0);
+  $("bDisparo").textContent = E.fase==="apuntar" ? "LANZAR" : "…";
+}
+function refrescaFormas(){
+  var caja=$("formas"), bs=caja.querySelectorAll("button"), disp=E.datos.formas;
+  caja.className = disp.length>1 ? "" : "oculto";
+  for(var i=0;i<bs.length;i++){
+    bs[i].style.display = disp.indexOf(bs[i].dataset.forma)>=0 ? "" : "none";
+    bs[i].setAttribute("aria-pressed", bs[i].dataset.forma===E.forma);
+  }
+}
+
+/* ---- paneles ---- */
+function abrePanel(html){
+  var p=$("panel"); p.innerHTML=html;
+  var h=p.querySelector("h2");
+  if(h){ h.id="tituloPanel"; p.setAttribute("aria-labelledby","tituloPanel"); }
+  $("velo").className="ver";
+}
+function cierraPanel(){ $("velo").className=""; }
+
+function panelIntro(){
+  var d=E.datos;
+  var reglaTxt = {
+    fact:"y = a · (x − r₁) · (x − r₂)",
+    vert:"y = a · (x − h)² + k",
+    gen :"y = a·x² + b·x + c"
+  }[d.formas[0]];
+  abrePanel(
+    '<h2>'+d.nombre+'</h2>'+
+    '<p class="lema">'+d.lema+'</p>'+
+    '<p>'+d.intro+'</p>'+
+    '<div class="regla">La regla de oro: y(0) = 0<small>El tirachinas está en el origen, así que tu parábola tiene que pasar por ahí. Y la a debe ser negativa para que el búho baje.</small></div>'+
+    '<div class="botones"><button class="btn disparo" id="pJugar">A VOLAR</button></div>'
+  );
+  $("pJugar").addEventListener("click", cierraPanel);
+  $("pJugar").focus();
+}
+function panelVictoria(est){
+  var s="", i;
+  for(i=0;i<3;i++) s += '<span class="'+(i<est?"on":"")+'">★</span>';
+  var q=coef();
+  var hay = E.nivel < NIVELES.length-1;
+  abrePanel(
+    '<h2>¡Castillo abajo!</h2>'+
+    '<div class="estrellas">'+s+'</div>'+
+    '<p class="lema">'+(est===3?"A la primera y sin boceto.":est===2?"Bien, pero se puede afinar más.":"Derribado. Prueba a calcularlo antes de lanzar.")+'</p>'+
+    '<div class="solucion">Tu última parábola: y = '+nf(q.a)+'x² '+(q.b>=0?"+ ":"− ")+nf(Math.abs(q.b))+'x</div>'+
+    '<div class="botones">'+
+      '<button class="btn" id="pRepe">Repetir</button>'+
+      (hay?'<button class="btn disparo" id="pSig">SIGUIENTE</button>':'<button class="btn disparo" id="pMenu">NIVELES</button>')+
+    '</div>'
+  );
+  $("pRepe").addEventListener("click", function(){ cierraPanel(); carga(E.nivel); });
+  if(hay) $("pSig").addEventListener("click", function(){ cierraPanel(); carga(E.nivel+1); });
+  else $("pMenu").addEventListener("click", panelNiveles);
+  ($("pSig")||$("pMenu")).focus();
+}
+function panelDerrota(){
+  abrePanel(
+    '<h2>Te quedaste sin búhos</h2>'+
+    '<p class="lema">Nada roto es información: mira dónde cayó y corrige los números.</p>'+
+    '<div class="botones">'+
+      '<button class="btn" id="pMenu2">Niveles</button>'+
+      '<button class="btn disparo" id="pRepe2">OTRA VEZ</button>'+
+    '</div>'
+  );
+  $("pRepe2").addEventListener("click", function(){ cierraPanel(); carga(E.nivel); });
+  $("pMenu2").addEventListener("click", panelNiveles);
+  $("pRepe2").focus();
+}
+function panelPista(){
+  var d=E.datos;
+  abrePanel(
+    '<h2>Pista</h2><p class="lema">'+d.lema+'</p><p>'+d.pista+'</p>'+
+    '<div class="regla">y(0) = 0<small>Comprueba siempre esto antes de lanzar: si tu parábola no vale 0 en x = 0, no sale del tirachinas.</small></div>'+
+    '<div class="botones"><button class="btn disparo" id="pCerrar">ENTENDIDO</button></div>'
+  );
+  $("pCerrar").addEventListener("click", cierraPanel);
+  $("pCerrar").focus();
+}
+function panelNiveles(){
+  var h='<h2>Parabólica</h2><p class="lema">Escribe la parábola. El búho hace el resto.</p><div class="rejilla">';
+  NIVELES.forEach(function(n,i){
+    var e=progreso["n"+i]||0, est="", j;
+    for(j=0;j<3;j++) est += j<e ? "★" : "<i>★</i>";
+    var etq={fact:"factorizada",vert:"vértice",gen:"general"}[n.formas[0]];
+    if(n.formas.length>1) etq="libre";
+    h+='<div class="tarjeta" data-n="'+i+'" tabindex="0" role="button">'+
+       '<div class="num">'+(i+1)+'</div><div class="nom">'+n.nombre+'</div>'+
+       '<div class="est">'+est+'</div><div class="forma">'+etq+'</div></div>';
+  });
+  h+='<div class="tarjeta" data-n="libre" tabindex="0" role="button"><div class="num">∞</div>'+
+     '<div class="nom">Modo libre</div><div class="est">—</div><div class="forma">sin enemigos</div></div>';
+  h+='</div><div class="pie-marca"><a href="../../index.html">← Arcademia</a> · 4.º ESO · funciones cuadráticas</div>';
+  abrePanel(h);
+  var ts=$("panel").querySelectorAll(".tarjeta");
+  for(var i=0;i<ts.length;i++){
+    (function(t){
+      function ir(){ cierraPanel(); carga(t.dataset.n==="libre" ? "libre" : +t.dataset.n); }
+      t.addEventListener("click", ir);
+      t.addEventListener("keydown", function(ev){ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); ir(); } });
+    })(ts[i]);
+  }
+}
+
+/* ==========================================================================
+   CARGA DE NIVEL
+   ========================================================================== */
+function carga(n){
+  var d = (n==="libre") ? LIBRE : NIVELES[n];
+  E.nivel = n; E.datos = d;
+  E.bloques = d.bloques.map(function(b){
+    return {x:b.x, y:b.y, w:b.w, h:b.h, mat:b.mat, fijo:!!b.fijo, vida:MAT[b.mat].vida, vidaMax:MAT[b.mat].vida, muerto:false, vy:0, rot:0, rotv:0};
+  });
+  E.enemigos = d.enemigos.map(function(e){ return {x:e.x, y:e.y||0, muerto:false, vy:0, rot:0}; });
+  E.aros = d.aros.map(function(a){ return {x:a.x, y:a.y, pasado:false}; });
+  E.pajaros = d.pajaros; E.usados=0; E.usoBoceto=false; E.boceto=false;
+  E.estelas=[]; E.particulas=[]; E.flotantes=[]; E.bird=null; E.fase="apuntar"; E.camara=0;
+  E.forma = d.formas[0];
+  E.val = { fact:[-0.06,0,10], vert:[-0.05,8,3.2], gen:[-0.06,0.8,0] };
+
+  $("numNivel").textContent = (n==="libre") ? "Libre" : "Nivel "+(n+1);
+  $("nomNivel").textContent = d.nombre;
+  $("bBoceto").setAttribute("aria-pressed","false");
+  refrescaFormas(); pintaEcuacion(); pintaLectura(); refrescaContadores(); refrescaBotones(); ocultaAviso();
+  panelIntro();
+}
+
+/* ---- eventos ---- */
+$("bDisparo").addEventListener("click", lanza);
+$("bBoceto").addEventListener("click", function(){
+  E.boceto = !E.boceto;
+  if(E.boceto) E.usoBoceto = true;
+  this.setAttribute("aria-pressed", E.boceto);
+});
+$("bPista").addEventListener("click", panelPista);
+$("bNiveles").addEventListener("click", panelNiveles);
+$("bEjes").addEventListener("click", function(){ E.ejes=!E.ejes; this.setAttribute("aria-pressed",E.ejes); });
+$("bSonido").addEventListener("click", function(){
+  E.sonido=!E.sonido; this.setAttribute("aria-pressed",E.sonido);
+  this.textContent = E.sonido ? "🔊" : "🔈";
+});
+var bf = $("formas").querySelectorAll("button");
+for(var i=0;i<bf.length;i++){
+  bf[i].addEventListener("click", function(){
+    E.forma = this.dataset.forma;
+    refrescaFormas(); pintaEcuacion(); pintaLectura(); ocultaAviso();
+  });
+}
+document.addEventListener("keydown", function(ev){
+  if(/^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;
+  if($("velo").className==="ver") return;
+  if(ev.key==="Enter"||ev.key===" "){
+    if(/^(BUTTON|A)$/.test(ev.target.tagName)) return;   // que el teclado active botones y enlaces
+    ev.preventDefault(); lanza();
+  }
+  if(ev.key==="e"||ev.key==="E") $("bEjes").click();
+  if(ev.key==="s"||ev.key==="S") $("bSonido").click();
+  if(ev.key==="n"||ev.key==="N") $("bNiveles").click();
+  if(ev.key==="b"||ev.key==="B") $("bBoceto").click();
+  if(ev.key==="r"||ev.key==="R") carga(E.nivel);
+});
+
+/* ---- ganchos de prueba ---- */
+window.PARABOLICA = {
+  E:E, NIVELES:NIVELES, carga:carga, lanza:lanza, coef:coef, valida:valida, f:f,
+  pon:function(forma, v){ E.forma=forma; E.val[forma]=v.slice(); refrescaFormas(); pintaEcuacion(); pintaLectura(); },
+  resuelveNivel:function(){ var s=E.datos.sol; this.pon(s.forma, s.v); },
+  estado:function(){ return {fase:E.fase, vivos:vivos(), aros:arosPendientes(), pajaros:E.pajaros,
+    detalle:E.enemigos.map(function(e){ return {x:e.x, y:Math.round(e.y*100)/100, muerto:e.muerto}; })}; }
+};
+
+/* ---- arranque ---- */
+medir();
+carga(0);
+requestAnimationFrame(tic);
+})();
+</script>
+</body>
+</html>

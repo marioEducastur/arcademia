@@ -28,9 +28,13 @@
       --etiqueta: #f6f8fc;
       --tinta-oscura: #172033;
       --violeta: #a78bfa;
-      --curso-bach1: #a78bfa;
-      --curso-bach2: #7dd3fc;
       --curso-eso: #6ee7b7;
+      --curso-bach: #a78bfa;
+      --area-numeros: #38e0f0;
+      --area-algebra: #a78bfa;
+      --area-geometria: #6ee7b7;
+      --area-funciones: #fb923c;
+      --area-estadistica: #f472b6;
     }
 
     * {
@@ -376,7 +380,7 @@
     .etiqueta-cartucho {
       padding: 0.6rem 0.7rem 0.7rem;
       border-radius: 0.5rem;
-      border-top: 0.4rem solid var(--curso, var(--violeta));
+      border-top: 0.4rem solid var(--area, var(--violeta));
       background: #131843;
       color: var(--tinta-clara);
       box-shadow: inset 0 0 0 1px var(--borde-noche);
@@ -408,10 +412,18 @@
     }
 
     .chip-curso {
-      color: var(--curso, var(--violeta));
-      border: 1.5px solid var(--curso, var(--violeta));
       background: rgb(0 0 0 / 0.25);
       font-weight: 700;
+    }
+
+    .chip-curso.es-eso {
+      color: var(--curso-eso);
+      border: 1.5px solid var(--curso-eso);
+    }
+
+    .chip-curso.es-bach {
+      color: var(--curso-bach);
+      border: 1.5px solid var(--curso-bach);
     }
 
     .chip-tema {
@@ -484,6 +496,80 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
       }
+    }
+
+    /* ---- Selector de curso: botonera arcade de la portada ---- */
+
+    .selector-curso {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0 0 0.4rem;
+    }
+
+    .selector-rotulo {
+      color: var(--tinta-suave);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .filtro-curso {
+      padding: 0.3rem 0.85rem;
+      color: var(--neon-claro);
+      border: 2px solid #3a4487;
+      border-radius: 0.55rem;
+      background: linear-gradient(180deg, #232a5c 0%, #1b2148 100%);
+      box-shadow: 0 3px 0 #090c1e;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+
+    .filtro-curso:hover {
+      border-color: var(--neon);
+      box-shadow:
+        0 3px 0 #090c1e,
+        0 0 14px rgb(251 191 36 / 0.35);
+    }
+
+    .filtro-curso[aria-pressed="true"] {
+      color: #241a05;
+      border-color: #92710d;
+      background: linear-gradient(180deg, var(--neon-claro), var(--neon));
+      box-shadow:
+        0 3px 0 #090c1e,
+        0 0 16px rgb(251 191 36 / 0.4);
+    }
+
+    .filtro-estado {
+      min-height: 1.4rem;
+      margin: 0 0 0.6rem;
+      color: var(--tinta-media);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+    }
+
+    .cartucho {
+      transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        opacity 200ms ease,
+        filter 200ms ease;
+    }
+
+    .cartucho.es-apagado {
+      opacity: 0.26;
+      filter: saturate(0.35);
+    }
+
+    .filtrando .ranura-vacia {
+      opacity: 0.26;
     }
   </style>
 </head>
@@ -577,14 +663,38 @@
   </header>
 
   <main class="interior">
-    <section class="estante" aria-labelledby="eso1">
-      <h2 id="eso1">1.º ESO</h2>
+    <nav class="selector-curso" aria-label="Filtrar juegos por curso">
+      <span class="selector-rotulo" aria-hidden="true">Nivel:</span>
+      <button type="button" class="filtro-curso" data-curso="todos"
+        aria-pressed="true">Todos</button>
+      <button type="button" class="filtro-curso" data-curso="1eso"
+        aria-pressed="false">1.º ESO</button>
+      <button type="button" class="filtro-curso" data-curso="2eso"
+        aria-pressed="false">2.º ESO</button>
+      <button type="button" class="filtro-curso" data-curso="3eso"
+        aria-pressed="false">3.º ESO</button>
+      <button type="button" class="filtro-curso" data-curso="4eso"
+        aria-pressed="false">4.º ESO</button>
+      <button type="button" class="filtro-curso" data-curso="1bach"
+        aria-pressed="false">1.º Bach.</button>
+      <button type="button" class="filtro-curso" data-curso="2bach"
+        aria-pressed="false">2.º Bach.</button>
+    </nav>
+    <p class="filtro-estado" role="status"></p>
+
+    <section class="estante" aria-labelledby="area-numeros">
+      <h2 id="area-numeros">Números</h2>
       <div class="estante-rejilla">
-        <article class="cartucho" style="--curso: var(--curso-eso)">
+        <article
+          class="cartucho"
+          style="--area: var(--area-numeros)"
+          data-cursos="1eso 2eso"
+        >
           <div class="etiqueta-cartucho">
             <h3>La Torre de los Enteros</h3>
             <ul class="chips-cartucho">
-              <li class="chip-curso">1.º ESO</li>
+              <li class="chip-curso es-eso">1.º ESO</li>
+              <li class="chip-curso es-eso">2.º ESO</li>
               <li class="chip-tema">Números enteros</li>
             </ul>
             <div class="acciones-cartucho">
@@ -597,44 +707,15 @@
             </div>
           </div>
         </article>
-      </div>
-    </section>
-
-    <section class="estante" aria-labelledby="eso2">
-      <h2 id="eso2">2.º ESO</h2>
-      <div class="estante-rejilla">
-        <p class="ranura-vacia">
-          Próximamente: esta estantería espera sus primeros cartuchos.
-        </p>
-      </div>
-    </section>
-
-    <section class="estante" aria-labelledby="eso3">
-      <h2 id="eso3">3.º ESO</h2>
-      <div class="estante-rejilla">
-        <p class="ranura-vacia">
-          Próximamente: esta estantería espera sus primeros cartuchos.
-        </p>
-      </div>
-    </section>
-
-    <section class="estante" aria-labelledby="eso4">
-      <h2 id="eso4">4.º ESO</h2>
-      <div class="estante-rejilla">
-        <p class="ranura-vacia">
-          Próximamente: esta estantería espera sus primeros cartuchos.
-        </p>
-      </div>
-    </section>
-
-    <section class="estante" aria-labelledby="bach1">
-      <h2 id="bach1">1.º Bachillerato</h2>
-      <div class="estante-rejilla">
-        <article class="cartucho" style="--curso: var(--curso-bach1)">
+        <article
+          class="cartucho"
+          style="--area: var(--area-numeros)"
+          data-cursos="1bach"
+        >
           <div class="etiqueta-cartucho">
             <h3>Los Guardianes de ℝ</h3>
             <ul class="chips-cartucho">
-              <li class="chip-curso">1.º Bach.</li>
+              <li class="chip-curso es-bach">1.º Bach.</li>
               <li class="chip-tema">Números reales</li>
             </ul>
             <div class="acciones-cartucho">
@@ -647,12 +728,22 @@
             </div>
           </div>
         </article>
-        <article class="cartucho" style="--curso: var(--curso-bach1)">
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="area-algebra">
+      <h2 id="area-algebra">Álgebra</h2>
+      <div class="estante-rejilla">
+        <article
+          class="cartucho"
+          style="--area: var(--area-algebra)"
+          data-cursos="1bach"
+        >
           <div class="etiqueta-cartucho">
             <h3>El Grimorio de las Transformaciones</h3>
             <ul class="chips-cartucho">
-              <li class="chip-curso">1.º Bach.</li>
-              <li class="chip-tema">Ecuaciones (Álgebra)</li>
+              <li class="chip-curso es-bach">1.º Bach.</li>
+              <li class="chip-tema">Ecuaciones</li>
             </ul>
             <div class="acciones-cartucho">
               <a
@@ -664,12 +755,16 @@
             </div>
           </div>
         </article>
-        <article class="cartucho" style="--curso: var(--curso-bach1)">
+        <article
+          class="cartucho"
+          style="--area: var(--area-algebra)"
+          data-cursos="1bach"
+        >
           <div class="etiqueta-cartucho">
             <h3>Órbita Gauss</h3>
             <ul class="chips-cartucho">
-              <li class="chip-curso">1.º Bach.</li>
-              <li class="chip-tema">Sistemas de ecuaciones (Álgebra)</li>
+              <li class="chip-curso es-bach">1.º Bach.</li>
+              <li class="chip-tema">Sistemas de ecuaciones</li>
             </ul>
             <div class="acciones-cartucho">
               <a
@@ -684,8 +779,66 @@
       </div>
     </section>
 
-    <section class="estante" aria-labelledby="bach2">
-      <h2 id="bach2">2.º Bachillerato</h2>
+    <section class="estante" aria-labelledby="area-geometria">
+      <h2 id="area-geometria">Geometría</h2>
+      <div class="estante-rejilla">
+        <p class="ranura-vacia">
+          Próximamente: esta estantería espera sus primeros cartuchos.
+        </p>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="area-funciones">
+      <h2 id="area-funciones">Funciones</h2>
+      <div class="estante-rejilla">
+        <article
+          class="cartucho"
+          style="--area: var(--area-funciones)"
+          data-cursos="4eso"
+        >
+          <div class="etiqueta-cartucho">
+            <h3>Parabólica</h3>
+            <ul class="chips-cartucho">
+              <li class="chip-curso es-eso">4.º ESO</li>
+              <li class="chip-tema">Función cuadrática</li>
+            </ul>
+            <div class="acciones-cartucho">
+              <a
+                class="boton-jugar"
+                href="juegos/eso-4/parabolica.html"
+                aria-label="Jugar a Parabólica">
+                Jugar
+              </a>
+            </div>
+          </div>
+        </article>
+        <article
+          class="cartucho"
+          style="--area: var(--area-funciones)"
+          data-cursos="4eso 1bach"
+        >
+          <div class="etiqueta-cartucho">
+            <h3>f(x) SKATE</h3>
+            <ul class="chips-cartucho">
+              <li class="chip-curso es-eso">4.º ESO</li>
+              <li class="chip-curso es-bach">1.º Bach.</li>
+              <li class="chip-tema">Familias de funciones</li>
+            </ul>
+            <div class="acciones-cartucho">
+              <a
+                class="boton-jugar"
+                href="juegos/eso-4/fx-skate.html"
+                aria-label="Jugar a f(x) SKATE">
+                Jugar
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="estante" aria-labelledby="area-estadistica">
+      <h2 id="area-estadistica">Estadística y probabilidad</h2>
       <div class="estante-rejilla">
         <p class="ranura-vacia">
           Próximamente: esta estantería espera sus primeros cartuchos.
@@ -727,6 +880,51 @@
         actual = (actual + 1) % efectos.length;
         letrero.classList.add(efectos[actual]);
       }, 9000);
+    })();
+
+    (() => {
+      const botones = [...document.querySelectorAll(".filtro-curso")];
+      const cartuchos = [...document.querySelectorAll(".cartucho")];
+      const estado = document.querySelector(".filtro-estado");
+      const NOMBRES = {
+        "1eso": "1.º ESO",
+        "2eso": "2.º ESO",
+        "3eso": "3.º ESO",
+        "4eso": "4.º ESO",
+        "1bach": "1.º de Bachillerato",
+        "2bach": "2.º de Bachillerato"
+      };
+      const aplicar = (curso) => {
+        botones.forEach((boton) => {
+          boton.setAttribute(
+            "aria-pressed",
+            String(boton.dataset.curso === curso)
+          );
+        });
+        document.body.classList.toggle("filtrando", curso !== "todos");
+        let visibles = 0;
+        cartuchos.forEach((cartucho) => {
+          const coincide =
+            curso === "todos" ||
+            cartucho.dataset.cursos.split(" ").indexOf(curso) !== -1;
+          cartucho.classList.toggle("es-apagado", !coincide);
+          if (coincide) {
+            visibles += 1;
+          }
+        });
+        estado.textContent =
+          curso === "todos"
+            ? ""
+            : visibles +
+              (visibles === 1 ? " juego" : " juegos") +
+              " para " + NOMBRES[curso] +
+              (visibles === 0 ? " (de momento)" : "");
+      };
+      botones.forEach((boton) => {
+        boton.addEventListener("click", () => {
+          aplicar(boton.dataset.curso);
+        });
+      });
     })();
   </script>
 </body>

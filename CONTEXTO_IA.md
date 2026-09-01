@@ -1,6 +1,6 @@
 # Contexto compartido para cualquier IA
 
-Última actualización: **2026-08-05**
+Última actualización: **2026-09-01**
 
 ## Cómo retomar el proyecto
 
@@ -45,6 +45,8 @@ vigente, las decisiones aún no convertidas en reglas y los pendientes.
 | Órbita Gauss: el observatorio de los tres planos | 1.º Bach. | Sistemas de ecuaciones (unidad 2, Álgebra) | `OrbitaGaussInteractivo`, funciones `og*`, CSS `.og-` | **Migrado y verificado; pendiente de la aprobación del profesor** |
 | Los Guardianes de ℝ | 1.º Bach. | Números reales (unidad 1) | `GuardianesRealesInteractivo`, generadores `grGen*`, CSS `.gr-` | **Migrado y verificado; pendiente de la aprobación del profesor** |
 | La Torre de los Enteros | 1.º ESO | Números enteros | Aportado por el profesor (no procede de mat1) | **Integrado y verificado; pendiente de la aprobación del profesor** |
+| f(x) SKATE | 4.º ESO y 1.º Bach. | Funciones (familias, gráficas, pendiente) | Aportado por el profesor (no procede de mat1) | **Integrado y verificado; pendiente de la aprobación del profesor** |
+| Parabólica | 4.º ESO | Función cuadrática (tres formas) | Aportado por el profesor (no procede de mat1) | **Integrado y verificado; pendiente de la aprobación del profesor** |
 
 Orden de migración: Grimorio (piloto) → **Guardianes** → Órbita Gauss
 (cambiado por el profesor el 5 de agosto: quería el juego de la unidad 1
@@ -106,6 +108,124 @@ Enlaces «Aprende esto en…» hacia los apuntes:
    Arcademia, `mat1` no se toca.**
 
 ## Registro breve
+
+- **2026-09-01 (Parabólica, 4.º ESO; SIN COMMIT, pendiente de orden):**
+  tercer juego aportado por el profesor (canvas y WebAudio nativos, cero
+  dependencias, coma decimal ya de serie), integrado en
+  `juegos/eso-4/parabolica.html`. Es un «Angry Birds» donde el tirachinas
+  se sustituye por **escribir la parábola**: cada forma tiene su misión
+  (factorizada → la raíz cae sobre el enemigo; vértice → altura justa
+  entre muro y techo; general → sistema 2×2 desde dos aros) y la «regla
+  de oro» y(0) = 0 ata un parámetro y obliga a despejar. **Nivel: 4.º ESO
+  con chip único** (su propio pie ya lo decía); los tres primeros niveles
+  serían asequibles en 3.º, pero vértice, general y el sistema son de
+  4.º. Sin «Aprende esto en…» (la unidad de funciones no está publicada).
+  Retoques del precedente Torre/SKATE: cabecera con curso/tema/origen,
+  `lang="es-ES"`, viewport sin bloqueo de zoom, botón «← Arcademia» como
+  cuarto icobtn (con `flex-wrap` en la barra superior: a 375 px la
+  botonera envuelve bajo el título) más enlace en el pie del panel de
+  niveles, ARIA (`aria-live` en el aviso, labels en icobtns,
+  `role="dialog"` + `aria-labelledby` en paneles) y sacudida de cámara
+  quieta con `prefers-reduced-motion`. **Cuatro arreglos reales**:
+  (1) los atajos globales Enter/Espacio robaban la activación de botones
+  y enlaces (Enter sobre «Boceto» lanzaba el búho) — ahora se excluyen
+  BUTTON y A; (2) el «Ajustar» de la forma de vértice con h = 0 proponía
+  a = −k/10⁻⁹ (absurdo y sin salida) — ahora propone k = 0; (3) un búho
+  con impulso negativo «curaba» bloques (daño negativo) — recortado a 0;
+  (4) **la plataforma del nivel 8 pasa de `fila()` a `techo()`**: 3 de
+  sus 6 tablas nacían sin apoyo según la regla de soporte del motor y el
+  castillo se derrumbaba solo al primer disparo, invalidando la pista del
+  vértice que el propio nivel enseña; fija, el nivel se comporta como su
+  enunciado. Verificación en dos capas: **barrido jsc de 91.277
+  comprobaciones, 0 fallos** (equivalencia de las tres formas contra un
+  evaluador independiente en 50.000 puntos; tabla de verdad de `valida()`
+  en 11.271 casos con re-comprobación de cada «Ajustar»; coherencia de
+  las 8 pistas con geometría propia — el umbral 0,09 del muro cuadra al
+  milímetro contando el radio del búho; partidas motorizadas de los 8
+  niveles con estrellas 1/2/3, regla de mejora del récord y derrota; y
+  2.400 vuelos aleatorios de modo libre que siempre terminan; el doblete
+  de 3 estrellas del asedio existe con a ∈ [−0,087; −0,109], p. ej.
+  −0,1) y **partida por DOM** (niveles 1, 4 y 6 tecleando comas
+  decimales, victorias 3★ con récord en `localStorage`, aros marcados,
+  avisos de a > 0 y de h = 0 con su «Ajustar», exclusión de teclado
+  comprobada, boceto/sonido/ejes, consola limpia y 375 px sin
+  desbordes). Cuidado aprendido del conductor: al reinyectar el juego con
+  `requestAnimationFrame` intervenido para avanzar la física a mano, la
+  instancia vieja también cae en la bomba y sigue escribiendo sus
+  contadores en el DOM — hay que vaciar la cola de callbacks y clonar el
+  subárbol para desarmarla. Portada: cartucho «Parabólica» (chip 4.º ESO,
+  tema Función cuadrática) delante de f(x) SKATE en Funciones; filtros
+  reverificados (4.º ESO → 2, 1.º Bach. → 4, 3.º ESO → 0, Todos → 6) y
+  los seis «Jugar» con 200. Nota para el profesor: en modo libre la pista
+  invita a «poner a positiva y mirar hacia dónde se va el búho», pero
+  `valida()` lo bloquea con un aviso y el búho nunca vuela; decidir si en
+  libre se permite lanzar cualquier parábola. **Pendiente: revisión
+  visual del profesor y orden expresa de commit/push.**
+
+- **2026-09-01 (f(x) SKATE, 4.º ESO y 1.º Bach.; SIN COMMIT, pendiente de
+  orden):** segundo juego aportado por el profesor (prototipo «v7», canvas
+  y WebAudio nativos, sin React ni KaTeX), integrado en
+  `juegos/eso-4/fx-skate.html` siguiendo el precedente de la Torre.
+  **Análisis de nivel**: el modo fácil (fórmula + gráfica, rectas y
+  parábolas de inicio) es jugable desde 4.º ESO; los senos A·sen(Bx) a los
+  120 m, las cúbicas a los 250 m, el modo PRO (imaginar la gráfica desde
+  los coeficientes) y la lectura de la pendiente instantánea del HUD son
+  contenido pleno de 1.º de Bachillerato — de ahí los chips multinivel
+  «4.º ESO» + «1.º Bach.» en su cartucho de la estantería Funciones (sin
+  «Aprende esto en…»: la unidad de funciones de mat1 no está publicada).
+  Retoques respecto al prototipo: cabecera con curso/tema/origen,
+  `lang="es-ES"`, botón «← Arcademia» en su propio estilo, **webfonts de
+  Google sustituidas por pilas del sistema** (regla 2; si el profesor
+  quiere Bungee/Space Grotesk exactas se incrustarían como data URI, como
+  la Baloo 2 de la Torre), viewport sin bloqueo de zoom, ARIA
+  (`aria-live` en avisos, cartas `role="button"` + Espacio, diálogo de
+  lección con foco al abrir, vidas con `aria-label`), y **un arreglo
+  real: centrado seguro de `.screen`** (con `justify-content:center` el
+  título quedaba inalcanzable en 375 px; ahora márgenes automáticos en
+  los extremos). Verificación en dos capas: **barrido jsc de 3,39
+  millones de comprobaciones, 0 fallos** (25 200 segmentos + 9720 cartas;
+  un parser independiente reconstruye la f desde la fórmula MOSTRADA y
+  la contrasta con la pista — el contrato «lo que lees es lo que
+  patinas» — más derivadas por diferencias finitas, monedas en extremos
+  verdaderos, desbloqueos por familia, y «siempre una carta viable»:
+  3240/3240 atravesables con un integrador propio incluso entrando a
+  0,75·v; documentado que las parábolas pueden entrar con pendiente
+  hasta ±2,2 por diseño — la viabilidad se filtra por energía) y
+  **partida por DOM** con conductor honesto que lee solo fórmulas y
+  velocidad del DOM: 1333 m, 2 muertes legítimas con lección
+  matemáticamente coherente (v²/2g cuadra), desbloqueos clavados a 120 y
+  250 m, marcador exacto (base y PRO ×1,5), 3 fallos → FIN con récord,
+  consola limpia y 375 px sin desbordes (menú, cartas 2+1 y lección).
+  Cuidados aprendidos: con el panel del navegador **oculto** el
+  `requestAnimationFrame` se congela — para seguir verificando se avanza
+  la física a mano en bloques síncronos (`physics(1/60)` en bucle) y se
+  mide después; y los clics por coordenadas del panel oculto se atascan
+  (usar `.click()` sintético). Filtros de la portada reverificados
+  (4.º ESO → 1, 1.º Bach. → 4, Todos restaura) y los seis enlaces con
+  200. **Pendiente: revisión visual del profesor y orden expresa de
+  commit/push.**
+
+- **2026-08-06 (portada por áreas; SIN COMMIT, pendiente de orden):**
+  decisión del profesor tras debatirlo: la portada se organiza por
+  **áreas matemáticas** en vez de por curso — cinco estanterías
+  (Números, Álgebra, Geometría, Funciones, Estadística y probabilidad),
+  cada una con su color de franja (`--area-*`) — y los cartuchos llevan
+  **chips de curso múltiples** para juegos multinivel (la Torre luce
+  «1.º ESO» y «2.º ESO»; familias `es-eso` verde / `es-bach` violeta) y
+  `data-cursos` para el filtro. Nueva **botonera «Nivel»** sobre las
+  estanterías (Todos + 6 cursos, `aria-pressed`, estilo recreativa):
+  al elegir curso se atenúan los cartuchos que no encajan (sin
+  ocultarlos, para que se vea lo que espera más adelante) y una línea
+  `role="status"` canta el resultado («3 juegos para 1.º de
+  Bachillerato», «0 juegos para 3.º ESO (de momento)»). Dentro de cada
+  área, los juegos van de curso menor a mayor. Los archivos de
+  `juegos/<nivel>/` no se mueven: solo cambia el salón. También se
+  registró que el profesor activó el **Control remoto desde la propia
+  interfaz de la app de escritorio** (conmutador con URL; el comando
+  `/remote-control` escrito en el chat no abre panel ahí). Verificado:
+  filtros correctos en los cuatro casos (1.º ESO → 1, 1.º Bach. → 3,
+  3.º ESO → 0, Todos restaura), enlaces 200, escritorio y 375 px sin
+  desbordes. **Pendiente de la orden expresa de commit/push.**
 
 - **2026-08-06 (publicación de las mejoras del Grimorio):** por orden
   expresa del profesor («Hac commit y push después de corregir eso»),
